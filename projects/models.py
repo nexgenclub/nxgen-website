@@ -5,7 +5,6 @@ class Project(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField()
     github_link = models.URLField(max_length=500, blank=True, null=True)
-    live_demo_link = models.URLField(max_length=500, blank=True, null=True)
     tech_stack = models.CharField(max_length=255, help_text="Comma-separated list of technologies")
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="projects")
     created_at = models.DateTimeField(auto_now_add=True)
