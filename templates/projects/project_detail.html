@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>{{ project.title }}</h2>
+<p>{{ project.description }}</p>
+<p>GitHub: <a href="{{ project.github_link }}" target="_blank">View on GitHub</a></p>
+<p>Tech Stack: {{ project.tech_stack }}</p>
+<p>Created by: {{ project.created_by }}</p>
+
+<!-- Like Button -->
+<form action="{% url 'projects:like_project' project.id %}" method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-light">👍 Like</button>
+</form>
+
+<!-- Comments Section -->
+<h3>Comments</h3>
+<ul>
+    {% for comment in comments %}
+        <li>{{ comment.user }}: {{ comment.content }}</li>
+    {% endfor %}
+</ul>
+
+<!-- Add Comment -->
+<form method="post" action="{% url 'projects:add_comment' project.id %}">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Add Comment</button>
+</form>
+
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends 'base.html' %} {% load static %} {% block title %}All Projects
+{%endblock %} {% block content %} 
+
+<a href="{% url 'projects:add_project' %}" class="btn btn-primary">Add Project</a>
+<ul>
+    {% for project in projects %}
+        <li>
+            <a href="{% url 'projects:project_detail' project.id %}">{{ project.title }}</a> by {{ project.created_by }}
+        </li>
+    {% endfor %}
+</ul>
+
+{% endblock %}
