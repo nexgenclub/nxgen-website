@@ -7,6 +7,7 @@ class Project(models.Model):
     github_link = models.URLField(max_length=500, blank=True, null=True)
     tech_stack = models.CharField(max_length=255, help_text="Comma-separated list of technologies")
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="projects")
+    image = models.ImageField(upload_to='project_images/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_seeking_collaborators = models.BooleanField(default=False)

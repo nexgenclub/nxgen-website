@@ -4,7 +4,7 @@ from .models import Project, Comment
 class ProjectForm(forms.ModelForm):
     class Meta:
         model = Project
-        fields = ['title', 'description', 'github_link', 'tech_stack', 'is_seeking_collaborators']
+        fields = ['title', 'description', 'github_link', 'tech_stack', 'image', 'is_seeking_collaborators']
         widgets = {
             'tech_stack': forms.TextInput(attrs={'placeholder': 'e.g., Python, Django, React'}),
         }
