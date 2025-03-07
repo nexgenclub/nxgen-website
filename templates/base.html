@@ -249,7 +249,11 @@
             <a href="{% url 'courses:course_list' %}" class="sidebar-menu-item">
                 <i class="fas fa-graduation-cap fa-fw me-2"></i> Courses
             </a>
-            
+
+            <a href="{% url 'projects:project_home' %}" class="sidebar-menu-item">
+                <i class="fas fa-lightbulb fa-fw me-2"></i> Projects
+            </a>
+ 
             <!-- Other menu items here -->
             <a href="#" class="sidebar-menu-item">
                 <i class="fas fa-chart-line fa-fw me-2"></i> Analytics
@@ -314,6 +318,9 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'courses:course_list' %}">Courses</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'projects:project_home' %}">Projects</a>
                     </li>
                     <!-- Add more navigation items as needed -->
                 </ul>
