@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+{% block title %}Edit Profile{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-pic-wrapper {
+        position: relative;
+        display: inline-block;
+    }
+    
+    .profile-pic-overlay {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        background: rgba(0, 0, 0, 0.5);
+        color: white;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+    
+    .custom-file-input {
+        position: absolute;
+        opacity: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Edit Your Profile</h4>
+                </div>
+                
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <!-- Profile Picture Column -->
+                            <div class="col-md-4 text-center mb-4">
+                                <div class="profile-pic-wrapper mb-3">
+                                    <img src="{{ user.profile.image }}" class="rounded-circle img-fluid" style="width: 180px; height: 180px; object-fit: cover;">
+                                    <div class="profile-pic-overlay" title="Change profile picture">
+                                        <i class="fas fa-camera"></i>
+                                        <input type="file" name="image" class="custom-file-input" id="{{ p_form.image.auto_id }}" accept="image/*">
+                                    </div>
+                                </div>
+                                
+                                {% if p_form.image.errors %}
+                                    <div class="alert alert-danger">
+                                        {{ p_form.image.errors }}
+                                    </div>
+                                {% endif %}
+                                
+                                <p class="text-muted small">Click on the camera icon to change your profile picture</p>
+                            </div>
+                            
+                            <!-- Form Fields Column -->
+                            <div class="col-md-8">
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="{{ u_form.username.id_for_label }}" class="form-label">Username</label>
+                                        {{ u_form.username }}
+                                        {% if u_form.username.errors %}
+                                            <div class="text-danger small">{{ u_form.username.errors }}</div>
+                                        {% endif %}
+                                        <div class="form-text">Your unique username on the platform</div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <label for="{{ u_form.email.id_for_label }}" class="form-label">Email</label>
+                                        {{ u_form.email }}
+                                        {% if u_form.email.errors %}
+                                            <div class="text-danger small">{{ u_form.email.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="{{ u_form.first_name.id_for_label }}" class="form-label">First Name</label>
+                                        {{ u_form.first_name }}
+                                        {% if u_form.first_name.errors %}
+                                            <div class="text-danger small">{{ u_form.first_name.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <label for="{{ u_form.last_name.id_for_label }}" class="form-label">Last Name</label>
+                                        {{ u_form.last_name }}
+                                        {% if u_form.last_name.errors %}
+                                            <div class="text-danger small">{{ u_form.last_name.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label for="{{ p_form.bio.id_for_label }}" class="form-label">Bio</label>
+                                    {{ p_form.bio }}
+                                    {% if p_form.bio.errors %}
+                                        <div class="text-danger small">{{ p_form.bio.errors }}</div>
+                                    {% endif %}
+                                    <div class="form-text">Share a little about yourself</div>
+                                </div>
+                                
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>Save Changes
+                                    </button>
+                                    <a href="{% url 'profile' %}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-times me-2"></i>Cancel
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Show filename when a file is selected
+    document.addEventListener('DOMContentLoaded', function() {
+        const fileInput = document.getElementById('{{ p_form.image.auto_id }}');
+        
+        fileInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                // Preview the selected image
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const profilePic = fileInput.closest('.profile-pic-wrapper').querySelector('img');
+                    profilePic.src = e.target.result;
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+    });
+</script>
+{% endblock %}
