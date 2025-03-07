@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}NxGen Platform{% endblock %}</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    {% load static %}
+    <style>
+        /* Sticky Footer styles */
+        html, body {
+            height: 100%;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        main {
+            flex: 1 0 auto;
+        }
+        
+        footer {
+            flex-shrink: 0;
+            margin-top: auto;
+        }
+        
+        /* Sidebar styles */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 1030;
+            width: 280px;
+            background-color: #343a40;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            overflow-y: auto;
+        }
+        
+        .sidebar.show {
+            transform: translateX(0);
+        }
+        
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 1020;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+        }
+        
+        .sidebar-header {
+            padding: 1rem;
+            background-color: #212529;
+            color: white;
+        }
+        
+        .sidebar-menu {
+            padding: 1rem 0;
+        }
+        
+        .sidebar-menu-item {
+            display: block;
+            padding: 0.5rem 1.5rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        
+        .sidebar-menu-item:hover {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidebar-menu-item.active {
+            color: white;
+            background-color: #0d6efd;
+        }
+        
+        .sidebar-divider {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin: 1rem 0;
+        }
+        
+        /* Push content when sidebar is open */
+        @media (min-width: 992px) {
+            body.sidebar-open {
+                padding-left: 280px;
+            }
+            
+            body.sidebar-open .navbar {
+                left: 280px;
+                right: 0;
+                width: auto;
+            }
+        }
+        
+        /* Notification styles */
+        .notifications-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+            width: 350px;
+        }
+        
+        .notification {
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateX(100%);
+            opacity: 0;
+            animation: slide-in 0.3s forwards, fade-out 0.5s forwards 5s;
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        .notification-icon {
+            margin-right: 15px;
+            font-size: 20px;
+        }
+        
+        .notification-content {
+            flex: 1;
+        }
+        
+        .notification-title {
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+        
+        .notification-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 0;
+            margin-left: 10px;
+            opacity: 0.6;
+        }
+        
+        .notification-close:hover {
+            opacity: 1;
+        }
+        
+        .notification-success {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            color: #155724;
+        }
+        
+        .notification-error {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+            color: #721c24;
+        }
+        
+        .notification-warning {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            color: #856404;
+        }
+        
+        .notification-info {
+            background-color: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            color: #0c5460;
+        }
+        
+        @keyframes slide-in {
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes fade-out {
+            to {
+                opacity: 0;
+                display: none;
+            }
+        }
+        
+        /* User menu in sidebar */
+        .sidebar-profile {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            color: white;
+        }
+        
+        .sidebar-profile-image {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+            object-fit: cover;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header d-flex justify-content-between align-items-center">
+            <h3 class="m-0">NxGen</h3>
+            <button class="btn btn-link text-white p-0" id="closeSidebar">
+                <i class="fas fa-times fa-lg"></i>
+            </button>
+        </div>
+        
+        {% if user.is_authenticated %}
+        <div class="sidebar-profile">
+            {% if user.profile.image %}
+                <img src="{{ user.profile.image.url }}" alt="{{ user.username }}" class="sidebar-profile-image">
+            {% else %}
+                <img src="{% static 'images/default.jpg' %}" alt="{{ user.username }}" class="sidebar-profile-image">
+            {% endif %}
+            <div>
+                <div class="fw-bold">{{ user.username }}</div>
+                <small class="text-muted">{{ user.email }}</small>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="sidebar-menu">
+            <a href="{% url 'home' %}" class="sidebar-menu-item">
+                <i class="fas fa-home fa-fw me-2"></i> Home
+            </a>
+            
+            <!-- Other menu items here -->
+            <a href="#" class="sidebar-menu-item">
+                <i class="fas fa-chart-line fa-fw me-2"></i> Analytics
+            </a>
+            
+            <a href="#" class="sidebar-menu-item">
+                <i class="fas fa-users fa-fw me-2"></i> Community
+            </a>
+            
+            <div class="sidebar-divider"></div>
+            
+            {% if user.is_authenticated %}
+                <a href="{% url 'profile' %}" class="sidebar-menu-item">
+                    <i class="fas fa-user fa-fw me-2"></i> View Profile
+                </a>
+                
+                <a href="{% url 'edit_profile' %}" class="sidebar-menu-item">
+                    <i class="fas fa-edit fa-fw me-2"></i> Edit Profile
+                </a>
+                
+                <div class="sidebar-divider"></div>
+                
+                <form action="{% url 'logout' %}" method="post" class="m-0">
+                    {% csrf_token %}
+                    <button type="submit" class="sidebar-menu-item w-100 text-start bg-transparent border-0">
+                        <i class="fas fa-sign-out-alt fa-fw me-2"></i> Logout
+                    </button>
+                </form>
+            {% else %}
+                <a href="{% url 'login' %}" class="sidebar-menu-item">
+                    <i class="fas fa-sign-in-alt fa-fw me-2"></i> Login
+                </a>
+                
+                <a href="{% url 'register' %}" class="sidebar-menu-item">
+                    <i class="fas fa-user-plus fa-fw me-2"></i> Register
+                </a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <button class="navbar-toggler border-0 me-2" type="button" id="sidebarToggler">
+                <i class="fas fa-bars"></i>
+            </button>
+            <a class="navbar-brand" href="{% url 'home' %}">NxGen</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNavDropdown">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'home' %}">Home</a>
+                    </li>
+                    <!-- Add more navigation items as needed -->
+                </ul>
+                <ul class="navbar-nav">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                                {% if user.profile.image %}
+                                <img src="{{ user.profile.image.url }}" class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover;">
+                                {% else %}
+                                <img src="{% static 'images/default.jpg' %}" class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover;">
+                                {% endif %}
+                                {{ user.username }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{% url 'profile' %}">View Profile</a></li>
+                                <li><a class="dropdown-item" href="{% url 'edit_profile' %}">Edit Profile</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form action="{% url 'logout' %}" method="post" class="dropdown-item p-0">
+                                        {% csrf_token %}
+                                        <button type="submit" class="dropdown-item">Logout</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'login' %}">Login</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'register' %}">Register</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Notification Container -->
+    <div class="notifications-container" id="notificationsContainer"></div>
+
+    <!-- Main content area -->
+    <main class="container my-4">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>NxGen Platform</h5>
+                    <p>Your next generation platform for innovation</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p>&copy; {% now "Y" %} NxGen. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            const sidebarToggler = document.getElementById('sidebarToggler');
+            const closeSidebar = document.getElementById('closeSidebar');
+            
+            function toggleSidebar() {
+                sidebar.classList.toggle('show');
+                
+                if (sidebar.classList.contains('show')) {
+                    sidebarOverlay.style.display = 'block';
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    sidebarOverlay.style.display = 'none';
+                    document.body.style.overflow = '';
+                }
+            }
+            
+            sidebarToggler.addEventListener('click', toggleSidebar);
+            closeSidebar.addEventListener('click', toggleSidebar);
+            sidebarOverlay.addEventListener('click', toggleSidebar);
+            
+            const notificationsContainer = document.getElementById('notificationsContainer');
+            
+            function createNotification(message, type) {
+                const notification = document.createElement('div');
+                notification.className = `notification notification-${type}`;
+                
+                let icon = 'info-circle';
+                let title = 'Information';
+                
+                if (type === 'success') {
+                    icon = 'check-circle';
+                    title = 'Success';
+                } else if (type === 'error') {
+                    icon = 'exclamation-circle';
+                    title = 'Error';
+                } else if (type === 'warning') {
+                    icon = 'exclamation-triangle';
+                    title = 'Warning';
+                }
+                
+                notification.innerHTML = `
+                    <div class="notification-icon">
+                        <i class="fas fa-${icon}"></i>
+                    </div>
+                    <div class="notification-content">
+                        <div class="notification-title">${title}</div>
+                        <div>${message}</div>
+                    </div>
+                    <button class="notification-close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                
+                notificationsContainer.appendChild(notification);
+                
+                const closeButton = notification.querySelector('.notification-close');
+                closeButton.addEventListener('click', function() {
+                    notification.remove();
+                });
+                
+                setTimeout(() => {
+                    notification.remove();
+                }, 5500); // 5s fadeout + 0.5s buffer
+            }
+            
+            {% if messages %}
+                {% for message in messages %}
+                    let type = '{{ message.tags }}';
+                    if (type === 'danger' || type === 'error') type = 'error';
+                    else if (type === 'debug' || type === 'info') type = 'info';
+                    else if (type === 'success') type = 'success';
+                    else if (type === 'warning') type = 'warning';
+                    
+                    createNotification(
+                        "{{ message|escapejs }}", 
+                        type
+                    );
+                    
+                    console.log("Message created:", "{{ message|escapejs }}", type);
+                {% endfor %}
+            {% endif %}
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

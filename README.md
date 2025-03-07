@@ -1,84 +1,60 @@
-# NxGen Club Website
+# NxGen Website
 
-## Project Overview
-The NxGen Club website is designed to enhance member engagement, learning, and collaboration within the tech community. This project includes a complete redesign of the landing page and implementation of essential features to streamline registration, learning, and community interaction.
+A modern Django web application with user authentication, profile management, and a responsive UI.
 
-## Objectives
-- **Interactive Landing Page:** Engage users with a dynamic hero section and feature grid.
-- **Simplified Registration:** Easy user registration and login with Google/GitHub integration.
-- **Structured Learning Hub:** Offer diverse courses with hands-on projects and progress tracking.
-- **Member Showcase:** Highlight member projects and achievements.
-- **Community Engagement:** Facilitate event participation and discussions through forums.
+## Technology Stack
 
-## Features
+- Python 3.8+
+- Django 4.2+
+- Bootstrap 5
+- SQLite (development)
+- Pillow (for image handling)
+- Font Awesome 6 (for icons)
 
-### Landing Page
-- **Hero Section:** Tagline "Learn. Build. Showcase. Grow." with a background video montage.
-- **Features Grid:**
+## Installation
 
-  | Icon | Feature |
-  |------|---------|
-  | 🎓   | Courses ("Master Python in 6 weeks") |
-  | 🚀   | Projects ("Build and showcase real-world apps") |
-  | 📅   | Events ("Join hackathons and workshops") |
-  | 🤝   | Community ("Collaborate with 1,000+ tech enthusiasts") |
+### Prerequisites
 
-- **Project Highlights:** Carousel of top projects with a 'Browse All Projects' button.
-- **Upcoming Events:** Mini-calendar with RSVP links.
-- **Testimonials:** Quotes from satisfied members.
-- **Call-to-Action:** Sticky footer for quick registration.
+- Python 3.8 or higher
+- pip (Python package installer)
+- Git
 
-### About Section
-- **Club History:** Founding vision and purpose.
-- **Leadership Team:** Photos and profiles.
-- **Achievements:** Stats on members trained and projects completed.
+### Setup Instructions
 
-### User Registration & Login
-- **Registration Fields:** Name, email, student ID (optional), interests.
-- **Social Login:** Google/GitHub integration.
-- **Member Dashboard:** Personalized view of enrolled courses, progress, events, and achievements.
+1. **Clone the repository**
+    ```bash
+    git clone https://github.com/nexgenclub/nxgen-website.git
+    cd nxgen-website
+    ```
 
-### Learning Hub
-- **Course Categories:**
-  - Programming (Python, JavaScript)
-  - Cybersecurity
-  - AI/ML
-  - Networking
-  - Cloud Computing
-- **Structured Modules:** Theory + hands-on projects with progress tracking.
+2. **Install the required packages**
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-### Event Calendar
-- List of workshops, hackathons, guest lectures, and networking sessions.
-- RSVP system with email/SMS reminders.
+3. **Initialize the database**
+    ```bash
+    python manage.py migrate
+    ```
 
-### Forum/Discussion Board
-- Subforums for course help, project collaboration, and general IT discussions.
+4. **Run the development server**
+    ```bash
+    python manage.py runserver
+    ```
 
-## Tech Stack
-- **Frontend:** HTML, CSS, JavaScript
-- **Backend:** Django (Python)
-- **Database:** MySQL
-- **Authentication:** Google/GitHub OAuth
-- **Additional Tools:** Pandas, NumPy, TensorFlow, Scikit-learn (for AI/ML features)
+## Usage
 
-## Next Steps
-1. **UI/UX Design:** Complete design for the new landing page.
-2. **Authentication & Dashboard:** Implement user authentication and personalized dashboard.
-3. **Course Development:** Create course modules with progress tracking.
-4. **Event RSVP System:** Build event RSVP and notification system.
-
-## Stay Connected
-- **Discord:** Join our community at [https://discord.gg/uDBvArUj](https://discord.gg/uDBvArUj)
-- **GitHub:** Explore our codebase at [https://github.com/nexgenclub](https://github.com/nexgenclub)
+1. Open your web browser and navigate to `http://127.0.0.1:8000/`
 
 ## Contributing
-Contributions are welcome! Please submit pull requests to our GitHub repository. Ensure that your code adheres to our coding standards and guidelines.
+
+1. Fork the repository
+2. Create a new branch (`git checkout -b feature-branch`)
+3. Make your changes
+4. Commit your changes (`git commit -am 'Add new feature'`)
+5. Push to the branch (`git push origin feature-branch`)
+6. Create a new Pull Request
 
 ## License
-This project is licensed under the [MIT License](https://opensource.org/licenses/MIT).
 
-## Acknowledgments
-Special thanks to our contributors and community members for their support and contributions to the NxGen Club.
-
-## Contact
-For any questions or feedback, please reach out to us via Discord or email. We look forward to collaborating with you!
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
