@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Forums - NxGen{% endblock %}
+
+{% block extra_css %}
+<style>
+    .category-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        margin-bottom: 1.5rem;
+    }
+    
+    .category-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+    
+    .category-icon {
+        font-size: 2rem;
+        height: 64px;
+        width: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+        color: white;
+    }
+    
+    .stats-card {
+        border-left: 4px solid #0d6efd;
+    }
+    
+    .recent-topic {
+        transition: background-color 0.2s;
+        border-left: 3px solid transparent;
+    }
+    
+    .recent-topic:hover {
+        background-color: #f8f9fa;
+        border-left-color: #0d6efd;
+    }
+    
+    .forum-search {
+        max-width: 600px;
+        margin: 0 auto 2rem auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">Discussion Forums</h1>
+        <a href="{% url 'forums:create_topic' %}" class="btn btn-primary">
+            <i class="fas fa-plus-circle me-2"></i>New Topic
+        </a>
+    </div>
+    
+    <!-- Search bar -->
+    <div class="forum-search mb-4">
+        <form action="{% url 'forums:search' %}" method="GET" class="d-flex">
+            <input type="text" name="q" class="form-control me-2" placeholder="Search forums...">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-search"></i>
+            </button>
+        </form>
+    </div>
+    
+    <div class="row">
+        <!-- Main content - Categories -->
+        <div class="col-lg-8">
+            <h2 class="h4 mb-3">Categories</h2>
+            
+            {% for category in categories %}
+            <div class="card category-card">
+                <div class="card-body">
+                    <div class="d-flex">
+                        <div class="category-icon me-3">
+                            <i class="{{ category.icon }}"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h3 class="h5 mb-1">
+                                        <a href="{{ category.get_absolute_url }}" class="text-decoration-none">
+                                            {{ category.name }}
+                                        </a>
+                                    </h3>
+                                    <p class="text-muted small mb-2">{{ category.description }}</p>
+                                </div>
+                                <a href="{% url 'forums:create_topic' %}?category={{ category.id }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-plus"></i> New Topic
+                                </a>
+                            </div>
+                            <div class="d-flex mt-2">
+                                <div class="me-3">
+                                    <small class="text-muted">
+                                        <i class="fas fa-comment-dots me-1"></i> {{ category.get_topic_count }} topics
+                                    </small>
+                                </div>
+                                <div>
+                                    <small class="text-muted">
+                                        <i class="fas fa-comments me-1"></i> {{ category.get_post_count }} posts
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="alert alert-info">
+                No categories have been created yet.
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Sidebar - Stats and recent activity -->
+        <div class="col-lg-4">
+            <!-- Forum stats -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h5 mb-0">Forum Statistics</h2>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-comment-alt me-2"></i> Topics</span>
+                            <span class="badge bg-primary rounded-pill">{{ total_topics }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-comments me-2"></i> Posts</span>
+                            <span class="badge bg-primary rounded-pill">{{ total_posts }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-users me-2"></i> Members</span>
+                            <span class="badge bg-primary rounded-pill">{{ total_users }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Recent topics -->
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h5 mb-0">Recent Topics</h2>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        {% for topic in recent_topics %}
+                        <li class="list-group-item recent-topic p-3">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <a href="{{ topic.get_absolute_url }}" class="text-decoration-none fw-bold">
+                                        {{ topic.title|truncatechars:40 }}
+                                    </a>
+                                    <div class="small text-muted mt-1">
+                                        <i class="fas fa-folder me-1"></i> 
+                                        <a href="{{ topic.category.get_absolute_url }}" class="text-decoration-none">
+                                            {{ topic.category.name }}
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <div class="small text-muted">
+                                        <i class="fas fa-user me-1"></i> {{ topic.author.username }}
+                                    </div>
+                                    <div class="small text-muted">
+                                        <i class="fas fa-clock me-1"></i> {{ topic.created_at|naturaltime }}
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        {% empty %}
+                        <li class="list-group-item">
+                            <p class="text-muted mb-0">No topics have been created yet.</p>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
