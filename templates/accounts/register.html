@@ -1,51 +1,141 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}Register{% endblock %}
+
+{% block extra_css %}
+<style>
+    .password-strength {
+        height: 5px;
+        margin-top: 8px;
+        background-color: #e9ecef;
+        border-radius: 4px;
+    }
+    
+    .password-strength-meter {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 0.3s ease;
+    }
+    
+    .strength-weak { width: 25%; background-color: #dc3545; }
+    .strength-medium { width: 50%; background-color: #ffc107; }
+    .strength-good { width: 75%; background-color: #0dcaf0; }
+    .strength-strong { width: 100%; background-color: #198754; }
+    
+    .valid-feedback, .invalid-feedback {
+        display: none;
+        font-size: 0.875rem;
+    }
+    
+    .is-valid ~ .valid-feedback {
+        display: block;
+    }
+    
+    .is-invalid ~ .invalid-feedback {
+        display: block;
+    }
+    
+    .form-control.is-valid {
+        border-color: #198754;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%23198754' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right calc(0.375em + 0.1875rem) center;
+        background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+    }
+    
+    .form-control.is-invalid {
+        border-color: #dc3545;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right calc(0.375em + 0.1875rem) center;
+        background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+    }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-md-8 col-lg-6">
+    <div class="col-md-10 col-lg-8 col-xl-6">
         <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h2 class="h4 mb-0">Create Your Account</h2>
+            </div>
             <div class="card-body p-4">
-                <h2 class="text-center mb-4">Register</h2>
-                <form method="POST">
+                <form method="POST" id="registerForm" novalidate>
                     {% csrf_token %}
                     
                     <div class="mb-3">
                         <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
-                        {{ form.username }}
-                        {% if form.username.errors %}
-                            <div class="text-danger small">{{ form.username.errors }}</div>
-                        {% endif %}
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                            {{ form.username }}
+                        </div>
+                        <div class="valid-feedback">
+                            <i class="fas fa-check-circle"></i> Username looks good!
+                        </div>
+                        <div class="invalid-feedback" id="username-feedback">
+                            <i class="fas fa-exclamation-circle"></i> Please choose a valid username.
+                        </div>
                     </div>
                     
                     <div class="mb-3">
                         <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
-                        {{ form.email }}
-                        {% if form.email.errors %}
-                            <div class="text-danger small">{{ form.email.errors }}</div>
-                        {% endif %}
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                            {{ form.email }}
+                        </div>
+                        <div class="valid-feedback">
+                            <i class="fas fa-check-circle"></i> Email looks good!
+                        </div>
+                        <div class="invalid-feedback" id="email-feedback">
+                            <i class="fas fa-exclamation-circle"></i> Please enter a valid email address.
+                        </div>
                     </div>
                     
                     <div class="mb-3">
                         <label for="{{ form.password1.id_for_label }}" class="form-label">Password</label>
-                        {{ form.password1 }}
-                        {% if form.password1.errors %}
-                            <div class="text-danger small">{{ form.password1.errors }}</div>
-                        {% else %}
-                            <small class="text-muted">{{ form.password1.help_text }}</small>
-                        {% endif %}
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                            {{ form.password1 }}
+                            <button class="btn btn-outline-secondary" type="button" id="togglePassword1">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="password-strength mt-2">
+                            <div class="password-strength-meter" id="passwordStrengthMeter"></div>
+                        </div>
+                        <div class="mt-1">
+                            <span class="badge bg-secondary me-1" id="length-check"><i class="fas fa-times"></i> 8+ characters</span>
+                            <span class="badge bg-secondary me-1" id="number-check"><i class="fas fa-times"></i> Number</span>
+                            <span class="badge bg-secondary me-1" id="special-check"><i class="fas fa-times"></i> Special character</span>
+                            <span class="badge bg-secondary" id="uppercase-check"><i class="fas fa-times"></i> Uppercase</span>
+                        </div>
+                        <div class="invalid-feedback">
+                            <i class="fas fa-exclamation-circle"></i> Please use a stronger password.
+                        </div>
                     </div>
                     
-                    <div class="mb-3">
+                    <div class="mb-4">
                         <label for="{{ form.password2.id_for_label }}" class="form-label">Confirm Password</label>
-                        {{ form.password2 }}
-                        {% if form.password2.errors %}
-                            <div class="text-danger small">{{ form.password2.errors }}</div>
-                        {% endif %}
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                            {{ form.password2 }}
+                            <button class="btn btn-outline-secondary" type="button" id="togglePassword2">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="valid-feedback">
+                            <i class="fas fa-check-circle"></i> Passwords match!
+                        </div>
+                        <div class="invalid-feedback">
+                            <i class="fas fa-exclamation-circle"></i> Passwords do not match.
+                        </div>
                     </div>
                     
                     <div class="d-grid gap-2">
-                        <button class="btn btn-primary" type="submit">Register</button>
+                        <button class="btn btn-primary" type="submit" id="registerBtn">
+                            <i class="fas fa-user-plus me-2"></i>Create Account
+                        </button>
                     </div>
                 </form>
             </div>
@@ -55,4 +145,182 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('registerForm');
+    const usernameInput = document.getElementById('{{ form.username.id_for_label }}');
+    const emailInput = document.getElementById('{{ form.email.id_for_label }}');
+    const passwordInput = document.getElementById('{{ form.password1.id_for_label }}');
+    const confirmPasswordInput = document.getElementById('{{ form.password2.id_for_label }}');
+    const passwordStrengthMeter = document.getElementById('passwordStrengthMeter');
+    const togglePassword1 = document.getElementById('togglePassword1');
+    const togglePassword2 = document.getElementById('togglePassword2');
+    const lengthCheck = document.getElementById('length-check');
+    const numberCheck = document.getElementById('number-check');
+    const specialCheck = document.getElementById('special-check');
+    const uppercaseCheck = document.getElementById('uppercase-check');
+    
+    togglePassword1.addEventListener('click', function() {
+        togglePasswordVisibility(passwordInput, this);
+    });
+    
+    togglePassword2.addEventListener('click', function() {
+        togglePasswordVisibility(confirmPasswordInput, this);
+    });
+    
+    function togglePasswordVisibility(input, button) {
+        const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+        input.setAttribute('type', type);
+        button.querySelector('i').classList.toggle('fa-eye');
+        button.querySelector('i').classList.toggle('fa-eye-slash');
+    }
+    
+    usernameInput.addEventListener('input', function() {
+        const username = this.value.trim();
+        const isValid = username.length >= 3 && /^[a-zA-Z0-9_]+$/.test(username);
+        
+        this.classList.remove('is-valid', 'is-invalid');
+        if (username === '') return;
+        
+        if (isValid) {
+            this.classList.add('is-valid');
+        } else {
+            this.classList.add('is-invalid');
+            document.getElementById('username-feedback').textContent = 
+                "Username must be at least 3 characters and contain only letters, numbers, and underscores.";
+        }
+    });
+    
+    emailInput.addEventListener('input', function() {
+        const email = this.value.trim();
+        const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        
+        this.classList.remove('is-valid', 'is-invalid');
+        if (email === '') return;
+        
+        if (isValid) {
+            this.classList.add('is-valid');
+        } else {
+            this.classList.add('is-invalid');
+        }
+    });
+    
+    passwordInput.addEventListener('input', function() {
+        const password = this.value;
+        let strength = 0;
+        
+        const hasLength = password.length >= 8;
+        const hasNumber = /\d/.test(password);
+        const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+        const hasUppercase = /[A-Z]/.test(password);
+        
+        updateBadge(lengthCheck, hasLength);
+        updateBadge(numberCheck, hasNumber);
+        updateBadge(specialCheck, hasSpecial);
+        updateBadge(uppercaseCheck, hasUppercase);
+        
+        if (hasLength) strength += 1;
+        if (hasNumber) strength += 1;
+        if (hasSpecial) strength += 1;
+        if (hasUppercase) strength += 1;
+        
+        passwordStrengthMeter.className = 'password-strength-meter';
+        if (password.length === 0) {
+            passwordStrengthMeter.style.width = '0%';
+        } else {
+            if (strength === 1) {
+                passwordStrengthMeter.classList.add('strength-weak');
+            } else if (strength === 2) {
+                passwordStrengthMeter.classList.add('strength-medium');
+            } else if (strength === 3) {
+                passwordStrengthMeter.classList.add('strength-good');
+            } else if (strength === 4) {
+                passwordStrengthMeter.classList.add('strength-strong');
+            }
+        }
+        
+        this.classList.remove('is-valid', 'is-invalid');
+        if (password === '') return;
+        
+        if (strength >= 3) {
+            this.classList.add('is-valid');
+        } else {
+            this.classList.add('is-invalid');
+        }
+        
+        if (confirmPasswordInput.value) {
+            validatePasswordMatch();
+        }
+    });
+    
+    confirmPasswordInput.addEventListener('input', validatePasswordMatch);
+    
+    function validatePasswordMatch() {
+        confirmPasswordInput.classList.remove('is-valid', 'is-invalid');
+        if (confirmPasswordInput.value === '') return;
+        
+        if (confirmPasswordInput.value === passwordInput.value) {
+            confirmPasswordInput.classList.add('is-valid');
+        } else {
+            confirmPasswordInput.classList.add('is-invalid');
+        }
+    }
+    
+    function updateBadge(badge, isValid) {
+        if (isValid) {
+            badge.classList.remove('bg-secondary');
+            badge.classList.add('bg-success');
+            badge.querySelector('i').classList.remove('fa-times');
+            badge.querySelector('i').classList.add('fa-check');
+        } else {
+            badge.classList.remove('bg-success');
+            badge.classList.add('bg-secondary');
+            badge.querySelector('i').classList.remove('fa-check');
+            badge.querySelector('i').classList.add('fa-times');
+        }
+    }
+    
+    form.addEventListener('submit', function(event) {
+        const username = usernameInput.value.trim();
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
+        const confirmPassword = confirmPasswordInput.value;
+        
+        let isValid = true;
+        
+        if (username === '' || username.length < 3 || !/^[a-zA-Z0-9_]+$/.test(username)) {
+            usernameInput.classList.add('is-invalid');
+            isValid = false;
+        }
+        
+        if (email === '' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            emailInput.classList.add('is-invalid');
+            isValid = false;
+        }
+        
+        let strength = 0;
+        if (password.length >= 8) strength += 1;
+        if (/\d/.test(password)) strength += 1;
+        if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) strength += 1;
+        if (/[A-Z]/.test(password)) strength += 1;
+        
+        if (strength < 3) {
+            passwordInput.classList.add('is-invalid');
+            isValid = false;
+        }
+        
+        if (confirmPassword !== password) {
+            confirmPasswordInput.classList.add('is-invalid');
+            isValid = false;
+        }
+        
+        if (!isValid) {
+            event.preventDefault();
+        }
+    });
+});
+</script>
 {% endblock %}

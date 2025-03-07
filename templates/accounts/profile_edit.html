@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}Edit Profile{% endblock %}
 
 {% block extra_css %}
@@ -50,7 +51,11 @@
                             <!-- Profile Picture Column -->
                             <div class="col-md-4 text-center mb-4">
                                 <div class="profile-pic-wrapper mb-3">
-                                    <img src="{{ user.profile.image }}" class="rounded-circle img-fluid" style="width: 180px; height: 180px; object-fit: cover;">
+                                    {% if user.profile.image %}
+                                        <img src="{{ user.profile.image.url }}" class="rounded-circle img-fluid" style="width: 180px; height: 180px; object-fit: cover;">
+                                    {% else %}
+                                        <img src="{% static 'images/default.jpg' %}" class="rounded-circle img-fluid" style="width: 180px; height: 180px; object-fit: cover;">
+                                    {% endif %}
                                     <div class="profile-pic-overlay" title="Change profile picture">
                                         <i class="fas fa-camera"></i>
                                         <input type="file" name="image" class="custom-file-input" id="{{ p_form.image.auto_id }}" accept="image/*">
@@ -134,13 +139,11 @@
 
 {% block extra_js %}
 <script>
-    // Show filename when a file is selected
     document.addEventListener('DOMContentLoaded', function() {
         const fileInput = document.getElementById('{{ p_form.image.auto_id }}');
         
         fileInput.addEventListener('change', function() {
             if (this.files && this.files[0]) {
-                // Preview the selected image
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const profilePic = fileInput.closest('.profile-pic-wrapper').querySelector('img');
