@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if section %}Edit Section{% else %}Add Section{% endif %} - NXGen Learning{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
+<style>
+    .CodeMirror {
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        min-height: 300px;
+    }
+    
+    .editor-toolbar {
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem 0.25rem 0 0;
+        border-bottom: 0;
+    }
+    
+    .preview-area {
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        padding: 1rem;
+        margin-top: 1rem;
+        min-height: 300px;
+        background-color: #fff;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">
+                <i class="fas fa-{% if section %}edit{% else %}plus-circle{% endif %} me-2"></i>
+                {% if section %}Edit Section{% else %}Add New Section{% endif %}
+            </h1>
+            <p class="lead text-muted">
+                Course: <a href="{% url 'courses:edit_course' course.slug %}" class="text-decoration-none">{{ course.title }}</a>
+            </p>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Section Information</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="sectionForm">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.title.id_for_label }}" class="form-label">Section Title</label>
+                            {{ form.title }}
+                            {% if form.title.errors %}
+                                <div class="text-danger small mt-1">{{ form.title.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.order.id_for_label }}" class="form-label">Order</label>
+                            {{ form.order }}
+                            {% if form.order.errors %}
+                                <div class="text-danger small mt-1">{{ form.order.errors }}</div>
+                            {% endif %}
+                            <div class="form-text">The position of this section in the course. Lower numbers come first.</div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="{{ form.content.id_for_label }}" class="form-label">Section Content</label>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="form-text">Use Markdown to format your content.</div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="previewToggle">
+                                    <label class="form-check-label" for="previewToggle">Preview</label>
+                                </div>
+                            </div>
+                            
+                            <div id="editorContainer">
+                                {{ form.content }}
+                                {% if form.content.errors %}
+                                    <div class="text-danger small mt-1">{{ form.content.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div id="previewContainer" class="preview-area d-none markdown-content"></div>
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary px-4" id="submitButton">
+                                <i class="fas fa-save me-2"></i>Save Section
+                            </button>
+                            <a href="{% url 'courses:edit_course' course.slug %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('sectionForm');
+        const originalTextarea = document.querySelector('.md-editor');
+        
+        if (originalTextarea) {
+            // Create a hidden input to store the actual content value
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = originalTextarea.name;
+            hiddenInput.id = 'hidden-content-input';
+            form.appendChild(hiddenInput);
+            
+            // Store the original content and remove the name attribute from the textarea
+            const contentName = originalTextarea.name;
+            hiddenInput.value = originalTextarea.value || '';  // Initialize with current value if any
+            originalTextarea.removeAttribute('name');
+            originalTextarea.removeAttribute('required');
+            
+            // Initialize EasyMDE
+            const easyMDE = new EasyMDE({
+                element: originalTextarea,
+                spellChecker: false,
+                autosave: {
+                    enabled: true,
+                    delay: 10000,
+                    uniqueId: 'section-content-editor-{% if section %}{{ section.id }}{% else %}new{% endif %}',
+                },
+                toolbar: [
+                    'bold', 'italic', 'strikethrough', '|',
+                    'heading', 'heading-smaller', 'heading-bigger', '|',
+                    'code', 'quote', '|',
+                    'unordered-list', 'ordered-list', '|',
+                    'link', 'image', '|',
+                    'table', 'horizontal-rule', '|',
+                    'preview', 'side-by-side', 'fullscreen', '|',
+                    'guide'
+                ],
+                placeholder: 'Write your section content here...\n\nMarkdown is supported.',
+                initialValue: originalTextarea.value  // Set initial value
+            });
+
+            // Update hidden input whenever content changes
+            easyMDE.codemirror.on('change', function() {
+                hiddenInput.value = easyMDE.value();
+            });
+
+            // Handle the preview toggle
+            const previewToggle = document.getElementById('previewToggle');
+            const editorContainer = document.getElementById('editorContainer');
+            const previewContainer = document.getElementById('previewContainer');
+
+            previewToggle.addEventListener('change', function() {
+                if (this.checked) {
+                    editorContainer.classList.add('d-none');
+                    previewContainer.classList.remove('d-none');
+                    
+                    const content = easyMDE.value();
+                    previewContainer.innerHTML = marked.parse(content);
+                } else {
+                    editorContainer.classList.remove('d-none');
+                    previewContainer.classList.add('d-none');
+                }
+            });
+
+            // Validate form submission
+            form.addEventListener('submit', function(event) {
+                // Ensure the hidden input has the current editor content
+                hiddenInput.value = easyMDE.value();
+                
+                // Add validation if needed
+                if (!hiddenInput.value.trim()) {
+                    event.preventDefault();
+                    alert('Please enter content for your section.');
+                    editorContainer.classList.remove('d-none');
+                    previewContainer.classList.add('d-none');
+                    previewToggle.checked = false;
+                    easyMDE.codemirror.focus();
+                    return false;
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

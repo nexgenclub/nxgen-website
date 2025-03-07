@@ -25,7 +25,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', home, name='home'),
     path('accounts/', include('accounts.urls')),
-    path('forums/', include('forums.urls', namespace='forums')),  # Add forums URLs
+    path('forums/', include('forums.urls', namespace='forums')),
+    path('courses/', include('courses.urls', namespace='courses')),  # Add this line
 ]
 
 if settings.DEBUG:

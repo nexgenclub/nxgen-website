@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Publish Course - {{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h5 mb-0">Publish Course</h2>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="display-1 text-success">
+                            <i class="fas fa-paper-plane"></i>
+                        </div>
+                        <h3 class="mt-3">Ready to publish "{{ course.title }}"?</h3>
+                        <p class="text-muted">Once published, your course will be available to all users.</p>
+                    </div>
+                    
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">Course Details</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-4 fw-bold">Title:</div>
+                                <div class="col-md-8">{{ course.title }}</div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-4 fw-bold">Category:</div>
+                                <div class="col-md-8">{{ course.category.name }}</div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-4 fw-bold">Level:</div>
+                                <div class="col-md-8">{{ course.get_level_display }}</div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-4 fw-bold">Sections:</div>
+                                <div class="col-md-8">{{ course.sections.count }}</div>
+                            </div>
+                            {% if course.estimated_duration %}
+                                <div class="row">
+                                    <div class="col-md-4 fw-bold">Duration:</div>
+                                    <div class="col-md-8">{{ course.estimated_duration }} minutes</div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info mb-4">
+                        <h6 class="alert-heading mb-2"><i class="fas fa-info-circle me-2"></i>Before you publish:</h6>
+                        <ul class="mb-0">
+                            <li>Make sure all your content is complete and correct</li>
+                            <li>Check for any spelling or grammatical errors</li>
+                            <li>Ensure all sections are properly ordered</li>
+                            <li>Verify that all links and references are working</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <strong>Note:</strong> After publishing, you can still edit your course, but it will be visible to all users.
+                    </div>
+                    
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-center gap-3">
+                            <button type="submit" class="btn btn-success btn-lg px-5">
+                                <i class="fas fa-paper-plane me-2"></i>Publish Now
+                            </button>
+                            <a href="{% url 'courses:edit_course' course.slug %}" class="btn btn-outline-secondary btn-lg">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Editing
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Review Report - {{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'courses:moderation_queue' %}">Moderation Queue</a></li>
+            <li class="breadcrumb-item active">Review Report</li>
+        </ol>
+    </nav>
+
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">
+                <i class="fas fa-shield-alt me-2"></i>Review Report
+            </h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Report Details -->
+            <div class="card mb-4">
+                <div class="card-header bg-warning">
+                    <h5 class="mb-0 text-dark">Report Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h6>Report Reason</h6>
+                        <div class="p-3 bg-light rounded">
+                            <span class="badge bg-danger mb-2">{{ report.get_reason_display }}</span>
+                            <p class="mb-0">{{ report.details|linebreaks }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center small text-muted">
+                        <span>Reported {{ report.created_at|naturaltime }}</span>
+                        <span>By {{ report.reporter.username }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Reported Course -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Reported Course</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div>
+                            <h4>{{ course.title }}</h4>
+                            <p class="text-muted mb-0">
+                                <i class="fas fa-user me-1"></i> {{ course.author.username }} |
+                                <i class="fas fa-folder me-1"></i> {{ course.category.name }} |
+                                <i class="fas fa-chart-line me-1"></i> {{ course.get_level_display }}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6>Course Description</h6>
+                        <p>{{ course.description|linebreaks }}</p>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                        <a href="{{ course.get_absolute_url }}" class="btn btn-outline-primary" target="_blank">
+                            <i class="fas fa-eye me-2"></i>View Course
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Moderation Action -->
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Take Action</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <h6 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>Moderator Notice</h6>
+                        <p class="mb-0">Please review the reported content carefully before taking any action. Your decision will impact both the course author and learners.</p>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card mb-3 mb-md-0">
+                                <div class="card-body">
+                                    <h6 class="card-title">Dismiss Report</h6>
+                                    <p class="card-text text-muted small">Use this option if the course does not violate any guidelines and can remain published.</p>
+                                    <form method="post" action="{% url 'courses:review_report' report.id %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="dismiss">
+                                        <button type="submit" class="btn btn-outline-success w-100">
+                                            <i class="fas fa-check me-2"></i>Dismiss Report
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6 class="card-title">Moderate Course</h6>
+                                    <p class="card-text text-muted small">Use this option if the course violates guidelines and should be hidden from public view.</p>
+                                    <form method="post" action="{% url 'courses:review_report' report.id %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="moderate">
+                                        <button type="submit" class="btn btn-outline-danger w-100">
+                                            <i class="fas fa-ban me-2"></i>Hide Course
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <!-- Author Information -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Course Author</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        {% if course.author.profile.image %}
+                            <img src="{{ course.author.profile.image.url }}" alt="{{ course.author.username }}" class="rounded-circle me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                        {% else %}
+                            <img src="{% static 'images/default.jpg' %}" alt="{{ course.author.username }}" class="rounded-circle me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                        {% endif %}
+                        <div>
+                            <h6 class="mb-1">{{ course.author.username }}</h6>
+                            <p class="text-muted small mb-0">Member since {{ course.author.date_joined|date:"M Y" }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <a href="#" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-user me-1"></i>View Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Reporter Information -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Reporter</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        {% if report.reporter.profile.image %}
+                            <img src="{{ report.reporter.profile.image.url }}" alt="{{ report.reporter.username }}" class="rounded-circle me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                        {% else %}
+                            <img src="{% static 'images/default.jpg' %}" alt="{{ report.reporter.username }}" class="rounded-circle me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                        {% endif %}
+                        <div>
+                            <h6 class="mb-1">{{ report.reporter.username }}</h6>
+                            <p class="text-muted small mb-0">Member since {{ report.reporter.date_joined|date:"M Y" }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <a href="#" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-user me-1"></i>View Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Moderation Guidelines -->
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Moderation Guidelines</h5>
+                </div>
+                <div class="card-body">
+                    <div class="small">
+                        <h6>When to moderate content:</h6>
+                        <ul>
+                            <li>Contains hate speech or discriminatory content</li>
+                            <li>Violates intellectual property rights (copyright)</li>
+                            <li>Contains misleading or harmful information</li>
+                            <li>Promotes illegal activities</li>
+                            <li>Includes personal identifiable information</li>
+                            <li>Contains explicit or inappropriate content</li>
+                        </ul>
+                        
+                        <h6>When to dismiss reports:</h6>
+                        <ul>
+                            <li>Disagreement over factual information (with credible sources)</li>
+                            <li>Style/quality concerns (not a violation)</li>
+                            <li>Personal disagreements with author</li>
+                            <li>Clearly mistaken reports</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
