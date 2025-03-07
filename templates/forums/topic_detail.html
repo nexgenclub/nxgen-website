@@ -1,0 +1,386 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}{{ topic.title }} - Forums{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+<style>
+    .post-card {
+        margin-bottom: 1rem;
+    }
+    
+    .post-header {
+        background-color: #f8f9fa;
+        padding: 0.75rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    }
+    
+    .post-content {
+        padding: 1.25rem;
+    }
+    
+    .post-footer {
+        background-color: #f8f9fa;
+        padding: 0.75rem;
+        border-top: 1px solid rgba(0, 0, 0, 0.125);
+        font-size: 0.875rem;
+    }
+    
+    .user-avatar {
+        width: 64px;
+        height: 64px;
+        object-fit: cover;
+    }
+    
+    .markdown-content {
+        overflow-wrap: break-word;
+    }
+    
+    .markdown-content pre {
+        background-color: #f6f8fa;
+        border-radius: 6px;
+        padding: 16px;
+        overflow: auto;
+    }
+    
+    .markdown-content code {
+        background-color: #f6f8fa;
+        padding: 0.2em 0.4em;
+        border-radius: 3px;
+    }
+    
+    .markdown-content pre code {
+        background-color: transparent;
+        padding: 0;
+    }
+    
+    .markdown-content table {
+        border-collapse: collapse;
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+    
+    .markdown-content th, .markdown-content td {
+        border: 1px solid #dee2e6;
+        padding: 8px;
+    }
+    
+    .markdown-content th {
+        background-color: #f8f9fa;
+    }
+    
+    .markdown-content blockquote {
+        border-left: 4px solid #dee2e6;
+        padding-left: 1rem;
+        color: #6c757d;
+    }
+    
+    .topic-locked-alert {
+        border-left: 4px solid #dc3545;
+    }
+    
+    .topic-pinned-alert {
+        border-left: 4px solid #198754;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mt-3 mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'forums:forum_home' %}">Forums</a></li>
+            <li class="breadcrumb-item"><a href="{{ topic.category.get_absolute_url }}">{{ topic.category.name }}</a></li>
+            <li class="breadcrumb-item active">{{ topic.title }}</li>
+        </ol>
+    </nav>
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">{{ topic.title }}</h1>
+        {% if not topic.locked %}
+            <a href="{% url 'forums:reply_topic' topic.category.slug topic.slug %}" class="btn btn-primary">
+                <i class="fas fa-reply me-2"></i>Reply
+            </a>
+        {% endif %}
+    </div>
+    
+    <!-- Topic status alerts -->
+    {% if topic.pinned %}
+    <div class="alert alert-success topic-pinned-alert mb-4">
+        <div class="d-flex">
+            <div class="me-3">
+                <i class="fas fa-thumbtack fa-lg"></i>
+            </div>
+            <div>
+                <h5 class="alert-heading mb-1">Pinned Topic</h5>
+                <div>This topic has been pinned by a moderator.</div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if topic.locked %}
+    <div class="alert alert-danger topic-locked-alert mb-4">
+        <div class="d-flex">
+            <div class="me-3">
+                <i class="fas fa-lock fa-lg"></i>
+            </div>
+            <div>
+                <h5 class="alert-heading mb-1">Locked Topic</h5>
+                <div>This topic has been locked and no further replies can be made.</div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Posts list -->
+    {% for post in page_obj %}
+    <div class="card post-card" id="post-{{ post.id }}">
+        <div class="post-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-0">{{ post.author.username }}</h5>
+                </div>
+                <div>
+                    <span class="badge bg-secondary">
+                        {% if forloop.first %}
+                            Original Post
+                        {% else %}
+                            Reply #{{ forloop.counter|add:"-1" }}
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="row g-0">
+                <!-- User info sidebar -->
+                <div class="col-md-2 border-end p-3 text-center">
+                    {% if post.author.profile.image %}
+                        <img src="{{ post.author.profile.image.url }}" alt="{{ post.author.username }}" class="user-avatar rounded-circle mb-2">
+                    {% else %}
+                        <img src="{% static 'images/default.jpg' %}" alt="{{ post.author.username }}" class="user-avatar rounded-circle mb-2">
+                    {% endif %}
+                    
+                    <div class="small text-muted mb-2">
+                        Joined: {{ post.author.date_joined|date:"M Y" }}
+                    </div>
+                    <div class="small text-muted">
+                        Posts: {{ post.author.forum_posts.count }}
+                    </div>
+                </div>
+                
+                <!-- Post content -->
+                <div class="col-md-10">
+                    <div class="post-content">
+                        <div class="markdown-content">
+                            {{ post.content_html|safe }}
+                        </div>
+                        
+                        {% if post.edited %}
+                            <div class="mt-3">
+                                <small class="text-muted fst-italic">
+                                    <i class="fas fa-edit me-1"></i> Last edited: {{ post.updated_at|naturaltime }}
+                                </small>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="post-footer">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="text-muted">
+                                Posted: {{ post.created_at|naturaltime }}
+                            </div>
+                            <div>
+                                {% if user.is_authenticated and user == post.author or user.is_staff %}
+                                    <a href="{% url 'forums:edit_post' post.id %}" class="btn btn-sm btn-outline-secondary">
+                                        <i class="fas fa-edit me-1"></i>Edit
+                                    </a>
+                                {% endif %}
+                                <button class="btn btn-sm btn-outline-secondary" onclick="copyPostLink({{ post.id }})">
+                                    <i class="fas fa-link me-1"></i>Copy Link
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    
+    <!-- Pagination -->
+    {% if page_obj.paginator.num_pages > 1 %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1" aria-label="First">
+                        <span aria-hidden="true">&laquo;&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Last">
+                        <span aria-hidden="true">&raquo;&raquo;</span>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+    
+    <!-- Quick reply form if topic is not locked -->
+    {% if not topic.locked and user.is_authenticated %}
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="mb-0">Quick Reply</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{% url 'forums:reply_topic' topic.category.slug topic.slug %}">
+                {% csrf_token %}
+                <div class="mb-3">
+                    {{ form.content }}
+                    {% if form.content.errors %}
+                        <div class="text-danger small mt-1">{{ form.content.errors }}</div>
+                    {% endif %}
+                    <div class="form-text">
+                        <i class="fab fa-markdown me-1"></i> Markdown is supported. See the 
+                        <a href="#" data-bs-toggle="modal" data-bs-target="#markdownHelp">formatting guide</a>.
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-paper-plane me-2"></i>Post Reply
+                </button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Markdown help modal -->
+    <div class="modal fade" id="markdownHelp" tabindex="-1" aria-labelledby="markdownHelpTitle" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="markdownHelpTitle">
+                        <i class="fab fa-markdown me-2"></i>Markdown Formatting Guide
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Text Formatting</h6>
+                            <pre><code># Heading 1
+## Heading 2
+### Heading 3
+
+**Bold text**
+*Italic text*
+~~Strikethrough~~
+
+[Link text](https://example.com)
+
+> Blockquote text
+</code></pre>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Lists</h6>
+                            <pre><code>* Unordered list item
+* Another item
+  * Nested item
+
+1. Ordered list item
+2. Second item
+3. Third item</code></pre>
+                            
+                            <h6>Code</h6>
+                            <pre><code>Inline `code`
+
+```python
+def hello_world():
+    print("Hello, world!")
+```</code></pre>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <h6>Tables</h6>
+                            <pre><code>| Header 1 | Header 2 |
+|----------|----------|
+| Cell 1   | Cell 2   |
+| Cell 3   | Cell 4   |</code></pre>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Images</h6>
+                            <pre><code>![Alt text](https://example.com/image.jpg)</code></pre>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+        document.querySelectorAll('pre code').forEach((block) => {
+            if (hljs.highlightElement) {
+                hljs.highlightElement(block);
+            } else if (hljs.highlightBlock) {
+                hljs.highlightBlock(block);
+            } else {
+                hljs.highlightAuto(block);
+            }
+        });
+    });
+    
+    function copyPostLink(postId) {
+        const url = window.location.origin + window.location.pathname + '#post-' + postId;
+        
+        navigator.clipboard.writeText(url).then(() => {
+            const button = event.target.closest('button');
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-check me-1"></i>Copied!';
+            
+            setTimeout(() => {
+                button.innerHTML = originalText;
+            }, 2000);
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
+            alert('Could not copy link. Please copy manually.');
+        });
+    }
+</script>
+{% endblock %}

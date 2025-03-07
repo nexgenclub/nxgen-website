@@ -242,6 +242,10 @@
                 <i class="fas fa-home fa-fw me-2"></i> Home
             </a>
             
+            <a href="{% url 'forums:forum_home' %}" class="sidebar-menu-item">
+                <i class="fas fa-comments fa-fw me-2"></i> Forums
+            </a>
+            
             <!-- Other menu items here -->
             <a href="#" class="sidebar-menu-item">
                 <i class="fas fa-chart-line fa-fw me-2"></i> Analytics
@@ -296,6 +300,9 @@
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'home' %}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'forums:forum_home' %}">Forums</a>
                     </li>
                     <!-- Add more navigation items as needed -->
                 </ul>
@@ -371,7 +378,6 @@
             
             function toggleSidebar() {
                 sidebar.classList.toggle('show');
-                
                 if (sidebar.classList.contains('show')) {
                     sidebarOverlay.style.display = 'block';
                     document.body.style.overflow = 'hidden';
@@ -380,13 +386,11 @@
                     document.body.style.overflow = '';
                 }
             }
-            
             sidebarToggler.addEventListener('click', toggleSidebar);
             closeSidebar.addEventListener('click', toggleSidebar);
             sidebarOverlay.addEventListener('click', toggleSidebar);
             
             const notificationsContainer = document.getElementById('notificationsContainer');
-            
             function createNotification(message, type) {
                 const notification = document.createElement('div');
                 notification.className = `notification notification-${type}`;
@@ -404,7 +408,6 @@
                     icon = 'exclamation-triangle';
                     title = 'Warning';
                 }
-                
                 notification.innerHTML = `
                     <div class="notification-icon">
                         <i class="fas fa-${icon}"></i>
@@ -419,12 +422,10 @@
                 `;
                 
                 notificationsContainer.appendChild(notification);
-                
                 const closeButton = notification.querySelector('.notification-close');
                 closeButton.addEventListener('click', function() {
                     notification.remove();
                 });
-                
                 setTimeout(() => {
                     notification.remove();
                 }, 5500); // 5s fadeout + 0.5s buffer
@@ -437,12 +438,10 @@
                     else if (type === 'debug' || type === 'info') type = 'info';
                     else if (type === 'success') type = 'success';
                     else if (type === 'warning') type = 'warning';
-                    
                     createNotification(
                         "{{ message|escapejs }}", 
                         type
                     );
-                    
                     console.log("Message created:", "{{ message|escapejs }}", type);
                 {% endfor %}
             {% endif %}
