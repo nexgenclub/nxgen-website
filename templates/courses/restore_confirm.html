@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Restore Course - {{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'courses:moderation_queue' %}">Moderation Queue</a></li>
+            <li class="breadcrumb-item"><a href="{{ course.get_absolute_url }}">{{ course.title }}</a></li>
+            <li class="breadcrumb-item active">Restore Course</li>
+        </ol>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-warning">
+                    <h2 class="h5 mb-0 text-dark">Confirm Restoration</h2>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info mb-4">
+                        <i class="fas fa-info-circle me-2"></i>
+                        You are about to restore this course to published status. It will become visible to all users again.
+                    </div>
+                    
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                {% if course.thumbnail %}
+                                    <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" class="img-thumbnail me-3" style="width: 100px; height: 100px; object-fit: cover;">
+                                {% else %}
+                                    <img src="{% static 'images/course-default.jpg' %}" alt="{{ course.title }}" class="img-thumbnail me-3" style="width: 100px; height: 100px; object-fit: cover;">
+                                {% endif %}
+                                <div>
+                                    <h4>{{ course.title }}</h4>
+                                    <p class="text-muted mb-0">
+                                        By {{ course.author.username }} |
+                                        {{ course.category.name }} |
+                                        {{ course.get_level_display }}
+                                    </p>
+                                </div>
+                            </div>
+                            <hr>
+                            <p class="mb-1"><strong>Current Status:</strong> <span class="badge bg-danger">{{ course.get_status_display }}</span></p>
+                            <p><strong>Will change to:</strong> <span class="badge bg-success">Published</span></p>
+                        </div>
+                    </div>
+                    
+                    <form method="post" class="text-center">
+                        {% csrf_token %}
+                        <p>Are you sure you want to restore this course to published status?</p>
+                        <div class="d-flex justify-content-center gap-3">
+                            <button type="submit" class="btn btn-success px-4">
+                                <i class="fas fa-check me-2"></i>Yes, Restore Course
+                            </button>
+                            <a href="{% url 'courses:moderation_queue' %}" class="btn btn-outline-secondary px-4">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

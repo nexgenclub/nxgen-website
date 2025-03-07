@@ -1,0 +1,224 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}My Courses - NXGen Learning{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">
+                <i class="fas fa-book-open me-2"></i>My Courses
+            </h1>
+            <p class="lead text-muted">Manage your courses and learning progress</p>
+        </div>
+        <div class="col-auto d-flex align-items-center">
+            <a href="{% url 'courses:create_course' %}" class="btn btn-primary">
+                <i class="fas fa-plus-circle me-2"></i>Create Course
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Authored Courses -->
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h5 mb-0">
+                        <i class="fas fa-chalkboard-teacher me-2"></i>Courses You Created
+                    </h2>
+                </div>
+                <div class="card-body p-0">
+                    {% if authored_courses %}
+                        <ul class="list-group list-group-flush">
+                            {% for course in authored_courses %}
+                                <li class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h5 class="mb-0">
+                                                <a href="{{ course.get_absolute_url }}" class="text-decoration-none">
+                                                    {{ course.title }}
+                                                </a>
+                                            </h5>
+                                            <div class="text-muted small">
+                                                <span class="badge {% if course.status == 'draft' %}bg-warning{% elif course.status == 'published' %}bg-success{% elif course.status == 'moderated' %}bg-danger{% else %}bg-secondary{% endif %} me-2">
+                                                    {{ course.get_status_display }}
+                                                </span>
+                                                {{ course.created_at|naturaltime }}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <a href="{% url 'courses:edit_course' course.slug %}" class="btn btn-sm btn-outline-secondary me-1" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{{ course.get_absolute_url }}" class="btn btn-sm btn-outline-primary" title="View">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <div class="text-center p-4">
+                            <p class="mb-3 text-muted">You haven't created any courses yet.</p>
+                            <a href="{% url 'courses:create_course' %}" class="btn btn-primary">
+                                <i class="fas fa-plus-circle me-2"></i>Create Your First Course
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+                {% if authored_courses %}
+                    <div class="card-footer">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">
+                                <i class="fas fa-info-circle me-1"></i>
+                                You've created {{ authored_courses.count }} course{{ authored_courses.count|pluralize }}
+                            </span>
+                            <a href="{% url 'courses:create_course' %}" class="btn btn-sm btn-outline-primary">
+                                Create New Course
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Enrolled Courses -->
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h2 class="h5 mb-0">
+                        <i class="fas fa-graduation-cap me-2"></i>Courses You're Learning
+                    </h2>
+                </div>
+                <div class="card-body p-0">
+                    {% if enrolled_courses %}
+                        <ul class="list-group list-group-flush">
+                            {% for enrollment in enrolled_courses %}
+                                <li class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h5 class="mb-0">
+                                                <a href="{{ enrollment.course.get_absolute_url }}" class="text-decoration-none">
+                                                    {{ enrollment.course.title }}
+                                                </a>
+                                            </h5>
+                                            <div class="text-muted small">
+                                                <span>By {{ enrollment.course.author.username }}</span>
+                                                <span class="ms-2">
+                                                    <i class="fas fa-clock me-1"></i>Enrolled {{ enrollment.enrolled_at|naturaltime }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex flex-column align-items-end">
+                                            <span class="badge {% if enrollment.completed %}bg-success{% else %}bg-warning{% endif %} mb-2">
+                                                {% if enrollment.completed %}
+                                                    <i class="fas fa-check-circle me-1"></i>Completed
+                                                {% else %}
+                                                    <i class="fas fa-hourglass-half me-1"></i>In Progress
+                                                {% endif %}
+                                            </span>
+                                            <a href="{{ enrollment.course.get_absolute_url }}" class="btn btn-sm btn-outline-primary">
+                                                {% if enrollment.completed %}
+                                                    <i class="fas fa-redo me-1"></i>Review
+                                                {% else %}
+                                                    <i class="fas fa-play me-1"></i>Continue
+                                                {% endif %}
+                                            </a>
+                                        </div>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <div class="text-center p-4">
+                            <p class="mb-3 text-muted">You're not enrolled in any courses yet.</p>
+                            <a href="{% url 'courses:course_list' %}" class="btn btn-success">
+                                <i class="fas fa-search me-2"></i>Browse Courses
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+                {% if enrolled_courses %}
+                    <div class="card-footer">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">
+                                <i class="fas fa-info-circle me-1"></i>
+                                You're enrolled in {{ enrolled_courses.count }} course{{ enrolled_courses.count|pluralize }}
+                            </span>
+                            <a href="{% url 'courses:course_list' %}" class="btn btn-sm btn-outline-success">
+                                Find More Courses
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Learning Statistics -->
+    {% if enrolled_courses %}
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h2 class="h5 mb-0">
+                            <i class="fas fa-chart-bar me-2"></i>Learning Statistics
+                        </h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 text-center mb-3 mb-md-0">
+                                <div class="display-4 fw-bold">{{ enrolled_courses.count }}</div>
+                                <div class="text-muted">Total Courses</div>
+                            </div>
+                            <div class="col-md-4 text-center mb-3 mb-md-0">
+                                <div class="display-4 fw-bold">
+                                    {% with completed=enrolled_courses.filter.completed.count %}
+                                        {{ completed }}
+                                    {% endwith %}
+                                </div>
+                                <div class="text-muted">Completed Courses</div>
+                            </div>
+                            <div class="col-md-4 text-center">
+                                <div class="display-4 fw-bold">
+                                    {% with completed=enrolled_courses.filter.completed.count %}
+                                        {% if enrolled_courses.count > 0 %}
+                                            {{ completed|floatformat:0 }}%
+                                        {% else %}
+                                            0%
+                                        {% endif %}
+                                    {% endwith %}
+                                </div>
+                                <div class="text-muted">Completion Rate</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Recommendations -->
+    {% if enrolled_courses %}
+        <div class="row mt-4">
+            <div class="col-12">
+                <h3>
+                    <i class="fas fa-lightbulb me-2"></i>Recommended For You
+                </h3>
+                <p class="text-muted">Based on your enrolled courses</p>
+                
+                <!-- This is a placeholder for a recommendations section that could be implemented with Django views -->
+                <div class="alert alert-info">
+                    <p class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Course recommendations will be available soon based on your learning history.
+                    </p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

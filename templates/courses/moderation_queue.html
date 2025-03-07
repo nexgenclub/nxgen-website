@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Moderation Queue - NXGen Learning{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">
+                <i class="fas fa-shield-alt me-2"></i>Moderation Queue
+            </h1>
+            <p class="lead text-muted">Review and moderate reported content</p>
+        </div>
+    </div>
+
+    <!-- Pending Reports -->
+    <div class="card mb-4">
+        <div class="card-header bg-warning">
+            <h2 class="h5 mb-0 text-dark">
+                <i class="fas fa-flag me-2"></i>Pending Reports
+            </h2>
+        </div>
+        <div class="card-body p-0">
+            {% if reports %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Course</th>
+                                <th>Reporter</th>
+                                <th>Reason</th>
+                                <th>Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for report in reports %}
+                                <tr>
+                                    <td>
+                                        <a href="{{ report.course.get_absolute_url }}" class="text-decoration-none" target="_blank">
+                                            {{ report.course.title }}
+                                        </a>
+                                        <div class="small text-muted">by {{ report.course.author.username }}</div>
+                                    </td>
+                                    <td>{{ report.reporter.username }}</td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ report.get_reason_display }}</span>
+                                    </td>
+                                    <td>{{ report.created_at|naturaltime }}</td>
+                                    <td>
+                                        <a href="{% url 'courses:review_report' report.id %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye me-1"></i>Review
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center p-5">
+                    <div class="mb-3">
+                        <i class="fas fa-check-circle text-success fa-3x"></i>
+                    </div>
+                    <h4>No pending reports</h4>
+                    <p class="text-muted mb-0">All reports have been reviewed. Great job!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Moderated Courses -->
+    <div class="card">
+        <div class="card-header bg-danger text-white">
+            <h2 class="h5 mb-0">
+                <i class="fas fa-exclamation-triangle me-2"></i>Moderated Courses
+            </h2>
+        </div>
+        <div class="card-body p-0">
+            {% if moderated_courses %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Course</th>
+                                <th>Author</th>
+                                <th>Category</th>
+                                <th>Date Published</th>
+                                <th>Date Moderated</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for course in moderated_courses %}
+                                <tr>
+                                    <td>
+                                        <a href="{{ course.get_absolute_url }}" class="text-decoration-none">
+                                            {{ course.title }}
+                                        </a>
+                                    </td>
+                                    <td>{{ course.author.username }}</td>
+                                    <td>{{ course.category.name }}</td>
+                                    <td>{{ course.published_at|date:"M d, Y" }}</td>
+                                    <td>{{ course.updated_at|naturaltime }}</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{{ course.get_absolute_url }}" class="btn btn-outline-secondary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'courses:restore_course' course.slug %}" class="btn btn-outline-success">
+                                                <i class="fas fa-undo"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center p-5">
+                    <div class="mb-3">
+                        <i class="fas fa-check-circle text-success fa-3x"></i>
+                    </div>
+                    <h4>No moderated courses</h4>
+                    <p class="text-muted mb-0">There are currently no courses under moderation.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
