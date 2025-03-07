@@ -54,3 +54,6 @@ static/collected/
 .DS_Store
 Thumbs.db
 *~
+
+./.idea
+.idea
