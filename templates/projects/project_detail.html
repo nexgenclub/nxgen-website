@@ -1,30 +1,40 @@
 {% extends 'base.html' %}
 {% block content %}
-<h2>{{ project.title }}</h2>
-<p>{{ project.description }}</p>
-<p>GitHub: <a href="{{ project.github_link }}" target="_blank">View on GitHub</a></p>
-<p>Tech Stack: {{ project.tech_stack }}</p>
-<p>Created by: {{ project.created_by }}</p>
+<div class="container">
+    <h2>{{ project.title }}</h2>
 
-<!-- Like Button -->
-<form action="{% url 'projects:like_project' project.id %}" method="post">
-    {% csrf_token %}
-    <button type="submit" class="btn btn-light">👍 Like</button>
-</form>
 
-<!-- Comments Section -->
-<h3>Comments</h3>
-<ul>
-    {% for comment in comments %}
-        <li>{{ comment.user }}: {{ comment.content }}</li>
-    {% endfor %}
-</ul>
+    {% if project.image %}
+        <img src="{{ project.image.url }}" class="img-fluid mb-3" alt="{{ project.title }}">
+    {% elif project.github_link %}
+        <img src="https://github.com/{{ project.github_link|cut:'https://github.com/' }}.png" class="img-fluid mb-3" alt="GitHub Profile">
+    {% else %}
+        <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" class="img-fluid mb-3" alt="Default GitHub Image">
+    {% endif %}
 
-<!-- Add Comment -->
-<form method="post" action="{% url 'projects:add_comment' project.id %}">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Add Comment</button>
-</form>
+    
 
+    <p><strong>Description:</strong> {{ project.description }}</p>
+    <p><strong>Tech Stack:</strong> {{ project.tech_stack }}</p>
+    <p><strong>GitHub:</strong> <a href="{{ project.github_link }}" target="_blank">View on GitHub</a></p>
+
+    <!-- Display README.md Content -->
+    {% if readme_content %}
+        <h3>📖 Project README</h3>
+        <div class="border p-3 bg-light">{{ readme_content|safe }}</div>
+    {% endif %}
+
+    <h3>💬 Comments</h3>
+    <ul>
+        {% for comment in comments %}
+            <li>{{ comment.user }}: {{ comment.content }}</li>
+        {% endfor %}
+    </ul>
+
+    <form method="post" action="{% url 'projects:add_comment' project.id %}">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Add Comment</button>
+    </form>
+</div>
 {% endblock %}
