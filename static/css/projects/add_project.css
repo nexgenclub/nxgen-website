@@ -6,9 +6,8 @@
     border-bottom: 2px solid #ddd;
 }
 
-.add_project_header h2 {
+.add_project_header h4 {
     margin: 0;
-    font-size: 1.8rem;
     font-weight: bold;
 }
 
