@@ -85,3 +85,28 @@ def delete_project(request, slug):
     else:
         messages.error(request, "You are not authorized to delete this project.")
         return redirect('project_detail', slug=slug) 
+    
+
+def edit_project(request, slug):
+    project = get_object_or_404(Project, slug=slug)
+    
+    # Check if the current user is the project owner
+    if request.user != project.created_by:
+        messages.error(request, "You don't have permission to edit this project.")
+        return redirect('projects:project_detail', slug=slug)
+    
+    if request.method == 'POST':
+        form = ProjectForm(request.POST, request.FILES, instance=project)
+        if form.is_valid():
+            updated_project = form.save()
+            messages.success(request, "Project updated successfully!")
+            return redirect('projects:project_detail', slug=updated_project.slug)
+    else:
+        form = ProjectForm(instance=project)
+    
+    context = {
+        'form': form,
+        'project': project,
+        'is_edit_mode': True
+    }
+    return render(request, 'projects/edit_project.html', context)
