@@ -159,10 +159,12 @@
                   {{ project.created_by.last_name }}
                 </td>
               </tr>
+              {% if project.created_by.profile.bio %}
               <tr>
                 <th>Bio</th>
                 <td>{{ project.created_by.profile.bio }}</td>
               </tr>
+              {% endif %}
               {% if project.is_seeking_collaborators %}
               <tr>
                 <th>Seeking Collaboration</th>
