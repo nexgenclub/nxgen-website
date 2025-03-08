@@ -15,13 +15,12 @@
             <h1 class="mb-3">NexGen Tech Events</h1>
             <p class="lead">Join us for workshops, talks, hackathons, and more!</p>
         </div>
-        <div class="col-md-4 text-md-end">
-            {% if user.is_staff %}
-                <a href="{% url 'events:event_create' %}" class="btn btn-primary">
-                    <i class="fas fa-plus-circle"></i> Create Event
-                </a>
-            {% endif %}
-        </div>
+        <li class="nav-item">
+            <a style="color:black;" class="btn btn-outline-light me-2" href="{% url 'events:event_create' %}">
+                <i class="fas fa-plus-circle"></i> Create Event
+            </a>
+        </li>
+       
     </div>
 
     <!-- Filters -->
