@@ -2,3 +2,15 @@ asgiref==3.8.1
 Django==5.1.7
 pillow==11.1.0
 sqlparse==0.5.3
+asgiref==3.8.1
+crispy-bootstrap5==2024.10
+Django==5.1.7
+django-crispy-forms==2.3
+pillow==11.1.0
+sqlparse==0.5.3
+asgiref==3.8.1
+crispy-bootstrap5==2024.10
+Django==5.1.7
+django-crispy-forms==2.3
+pillow==11.1.0
+sqlparse==0.5.3
