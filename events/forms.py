@@ -1,32 +1,3 @@
-# # forms.py
-# from django import forms
-# from .models import Event, Registration, EventCategory
-
-# class EventForm(forms.ModelForm):
-#     categories = forms.ModelMultipleChoiceField(
-#         queryset=EventCategory.objects.all(),
-#         widget=forms.SelectMultiple(attrs={'class': 'form-select select2'}),
-#         required=False
-#     )
-
-#     class Meta:
-#         model = Event
-#         fields = ['title', 'description', 'short_description', 'start_date', 
-#                   'end_date', 'registration_deadline', 'location', 'is_virtual', 
-#                   'virtual_link', 'image', 'capacity', 'categories', 'status']
-#         widgets = {
-#             'start_date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
-#             'end_date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
-#             'registration_deadline': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
-#             'description': forms.Textarea(attrs={'rows': 6}),
-#         }
-
-# class RegistrationForm(forms.ModelForm):
-#     class Meta:
-#         model = Registration
-#         fields = []  # No fields needed as we'll set event and user in the view
-
-
 # forms.py
 from django import forms
 from .models import Event, Registration, EventCategory
