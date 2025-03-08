@@ -7,30 +7,6 @@
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/projects/project_home.css' %}">
-<style>
-    .d-flex {
-  display: flex;
-  gap: 20px;
-}
-
-/* Sidebar */
-.filter-sidebar {
-  width: 20vw;
-  min-width: 250px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-}
-
-/* Projects List */
-.projects-container {
-  flex-grow: 1;
-}
-.filter-sidebar{
-    max-height: fit-content;
-}
-
-</style>
 <!-- Project Header -->
 <div class="project_home_header">
   <h2 class="mb-4">Projects</h2>
@@ -99,7 +75,7 @@
                   {% endif %}
                 {% endwith %}
 
-                <a href="{% url 'projects:project_detail' project.id %}" class="btn btn-primary w-100">
+                <a href="{% url 'projects:project_detail' project.slug %}" class="btn btn-primary w-100">
                   <i class="fas fa-external-link-alt"></i> View
                 </a>
               </div>
