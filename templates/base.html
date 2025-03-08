@@ -322,7 +322,9 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'projects:project_home' %}">Projects</a>
                     </li>
-                    <!-- Add more navigation items as needed -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'events:event_list' %}">Events</a>
+                    </li>
                 </ul>
                 <ul class="navbar-nav">
                     {% if user.is_authenticated %}
