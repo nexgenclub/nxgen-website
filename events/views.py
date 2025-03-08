@@ -184,11 +184,11 @@ def register_for_event(request, pk):
     logger.debug(f"Attempting to register for event with pk={pk}")
     
     try:
-        # First just retrieve the event without status filtering
+        # Retrieve the event
         event = get_object_or_404(Event, pk=pk)
         
-        # Then check if it's published
-        if event.status != 'published':
+        # Check if the event is published or if the user is an organizer or staff
+        if event.status != 'published' and not (request.user.is_staff or event.organizers.filter(id=request.user.id).exists()):
             logger.warning(f"Registration attempt for non-published event: {event.title} (status: {event.status})")
             messages.error(request, "The event you're trying to register for isn't published.")
             return redirect('events:event_list')
