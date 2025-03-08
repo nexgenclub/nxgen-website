@@ -1,251 +1,505 @@
-<!-- filepath: /home/ncognto/Downloads/WEBSITE/nxgen-website/templates/events/event_form.html -->
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static %}
-{% load custom_filters %}
 
-{% block title %}{% if form.instance.id %}Edit{% else %}Create{% endif %} Event - NexGen Tech Club{% endblock %}
+{% block title %}
+    {% if form.instance.id %}Edit Event - {{ form.instance.title }}{% else %}Create New Event{% endif %}
+{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2-bootstrap-5-theme/1.3.0/select2-bootstrap-5-theme.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/css/select2.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.9/flatpickr.min.css">
+<style>
+    .form-section {
+        background-color: #fff;
+        border-radius: 0.5rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        padding: 2rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .progress-tracker {
+        position: sticky;
+        top: 1rem;
+        z-index: 1020;
+    }
+    
+    .image-preview {
+        max-width: 100%;
+        height: auto;
+        border-radius: 0.375rem;
+        margin-top: 0.5rem;
+        display: none;
+    }
+    
+    /* CustomSwitch for is_virtual toggle */
+    .toggle-button-group {
+        display: inline-flex;
+        overflow: hidden;
+        border-radius: 0.375rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    
+    .toggle-button-group label {
+        background-color: #e9ecef;
+        color: #495057;
+        border: 1px solid #ced4da;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin: 0;
+    }
+    
+    .toggle-button-group label:first-of-type {
+        border-radius: 0.375rem 0 0 0.375rem;
+        border-right: none;
+    }
+    
+    .toggle-button-group label:last-of-type {
+        border-radius: 0 0.375rem 0.375rem 0;
+        border-left: none;
+    }
+    
+    .toggle-button-group input:checked + label {
+        background-color: #0d6efd;
+        color: #fff;
+        border-color: #0d6efd;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-lg-10">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="card-title mb-0">
-                        {% if form.instance.id %}
-                            <i class="fas fa-edit me-2"></i> Edit Event
-                        {% else %}
-                            <i class="fas fa-plus-circle me-2"></i> Create New Event
-                        {% endif %}
-                    </h4>
-                </div>
-                <div class="card-body">
-                    <form method="post" enctype="multipart/form-data" novalidate>
-                        {% csrf_token %}
-                        {% if form.non_field_errors %}
-                            <div class="alert alert-danger">
-                                {% for error in form.non_field_errors %}
-                                    <p>{{ error }}</p>
-                                {% endfor %}
+<div class="container mt-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">
+                {% if form.instance.id %}Edit Event: {{ form.instance.title }}{% else %}Create New Event{% endif %}
+            </h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{% url 'events:event_list' %}">Events</a></li>
+                    <li class="breadcrumb-item active">
+                        {% if form.instance.id %}Edit{% else %}Create{% endif %}
+                    </li>
+                </ol>
+            </nav>
+        </div>
+        <a href="{% url 'events:event_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Back to Events
+        </a>
+    </div>
+    
+    <div class="row g-4">
+        <!-- Progress Sidebar -->
+        <div class="col-lg-3">
+            <div class="progress-tracker">
+                <div class="list-group">
+                    <a href="#basic-details" class="list-group-item list-group-item-action active" data-section="basic-details">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 24px; height: 24px;">
+                                <i class="fas fa-info-circle text-white small"></i>
                             </div>
-                        {% endif %}
-                        
-                        <div class="row g-3">
-                            <!-- Basic Information -->
-                            <div class="col-12">
-                                <h5>Basic Information</h5>
-                                <hr>
-                            </div>
-                            
-                            <div class="col-12">
-                                <label for="{{ form.title.id_for_label }}" class="form-label">Event Title *</label>
-                                {{ form.title|add_class:"form-control" }}
-                                {% if form.title.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {% for error in form.title.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-12">
-                                <label for="{{ form.short_description.id_for_label }}" class="form-label">Short Description</label>
-                                {{ form.short_description|add_class:"form-control" }}
-                                <small class="text-muted">A brief summary (250 characters max)</small>
-                                {% if form.short_description.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {% for error in form.short_description.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-12">
-                                <label for="{{ form.description.id_for_label }}" class="form-label">Full Description *</label>
-                                {{ form.description|add_class:"form-control" }}
-                                {% if form.description.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {% for error in form.description.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-12">
-                                <label for="{{ form.categories.id_for_label }}" class="form-label">Categories</label>
-                                {{ form.categories }}
-                                {% if form.categories.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {% for error in form.categories.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <!-- Date and Time -->
-                            <div class="col-12 mt-4">
-                                <h5>Date and Time</h5>
-                                <hr>
-                            </div>
-                            
-                            <div class="col-md-6">
-                                <label for="{{ form.start_date.id_for_label }}" class="form-label">Start Date and Time *</label>
-                                {{ form.start_date|add_class:"form-control" }}
-                                {% if form.start_date.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {% for error in form.start_date.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-6">
-                                <label for="{{ form.end_date.id_for_label }}" class="form-label">End Date and Time *</label>
-                                {{ form.end_date|add_class:"form-control" }}
-                                {% if form.end_date.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {% for error in form.end_date.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-6">
-                                <label for="{{ form.registration_deadline.id_for_label }}" class="form-label">Registration Deadline</label>
-                                {{ form.registration_deadline|add_class:"form-control" }}
-                                <small class="text-muted">Optional. If not set, registration will be open until event starts.</small>
-                                {% if form.registration_deadline.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {% for error in form.registration_deadline.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <!-- Location -->
-                            <div class="col-12 mt-4">
-                                <h5>Location</h5>
-                                <hr>
-                            </div>
-                            
-                            <div class="col-md-6">
-                                <div class="form-check mb-3">
-                                    {{ form.is_virtual|add_class:"form-check-input" }}
-                                    <label class="form-check-label" for="{{ form.is_virtual.id_for_label }}">
-                                        This is a virtual event
-                                    </label>
-                                </div>
-                            </div>
-                            
-                            <div class="col-md-12 location-field">
-                                <label for="{{ form.location.id_for_label }}" class="form-label">Location *</label>
-                                {{ form.location|add_class:"form-control" }}
-                                {% if form.location.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {% for error in form.location.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-12 virtual-link-field" style="display: none;">
-                                <label for="{{ form.virtual_link.id_for_label }}" class="form-label">Virtual Event Link</label>
-                                {{ form.virtual_link|add_class:"form-control" }}
-                                <small class="text-muted">Link to join the virtual event (Zoom, Teams, etc.)</small>
-                                {% if form.virtual_link.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {% for error in form.virtual_link.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <!-- Additional Details -->
-                            <div class="col-12 mt-4">
-                                <h5>Additional Details</h5>
-                                <hr>
-                            </div>
-                            
-                            <div class="col-md-6">
-                                <label for="{{ form.capacity.id_for_label }}" class="form-label">Capacity</label>
-                                {{ form.capacity|add_class:"form-control" }}
-                                <small class="text-muted">Maximum number of attendees. Leave blank for unlimited.</small>
-                                {% if form.capacity.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {% for error in form.capacity.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-6">
-                                <label for="{{ form.image.id_for_label }}" class="form-label">Event Image</label>
-                                {% if form.instance.image %}
-                                    <div class="mb-2">
-                                        <img src="{{ form.instance.image.url }}" alt="Current image" class="img-thumbnail" style="max-height: 100px;">
-                                    </div>
-                                {% endif %}
-                                {{ form.image|add_class:"form-control" }}
-                                <small class="text-muted">Recommended size: 1200 x 630 pixels</small>
-                                {% if form.image.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {% for error in form.image.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-12 mt-4">
-                                <hr>
-                                <div class="d-flex justify-content-between">
-                                    <a href="{% url 'events:event_list' %}" class="btn btn-secondary">
-                                        <i class="fas fa-arrow-left me-1"></i> Cancel
-                                    </a>
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-save me-1"></i> 
-                                        {% if form.instance.id %}Save Changes{% else %}Create Event{% endif %}
-                                    </button>
-                                </div>
-                            </div>
+                            <span>Basic Details</span>
                         </div>
-                    </form>
+                    </a>
+                    <a href="#date-location" class="list-group-item list-group-item-action" data-section="date-location">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 24px; height: 24px;">
+                                <i class="fas fa-calendar-alt text-muted small"></i>
+                            </div>
+                            <span>Date & Location</span>
+                        </div>
+                    </a>
+                    <a href="#additional-info" class="list-group-item list-group-item-action" data-section="additional-info">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 24px; height: 24px;">
+                                <i class="fas fa-image text-muted small"></i>
+                            </div>
+                            <span>Additional Info</span>
+                        </div>
+                    </a>
+                </div>
+                
+                <div class="alert alert-info mt-4">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Tip:</strong> Fill out each section and click "Create Event" when you're done.
                 </div>
             </div>
+        </div>
+        
+        <!-- Form Content -->
+        <div class="col-lg-9">
+            <form method="post" enctype="multipart/form-data" id="eventForm">
+                {% csrf_token %}
+                {{ form.non_field_errors }}
+                
+                <!-- Section 1: Basic Details -->
+                <div id="basic-details" class="form-section">
+                    <h4 class="mb-4">Basic Details</h4>
+                    
+                    <!-- Event Title -->
+                    <div class="mb-3">
+                        {{ form.title.label_tag }}
+                        {{ form.title }}
+                        {% if form.title.errors %}
+                            <div class="invalid-feedback d-block">{{ form.title.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Event Description -->
+                    <div class="mb-3">
+                        {{ form.description.label_tag }}
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="invalid-feedback d-block">{{ form.description.errors }}</div>
+                        {% endif %}
+                        <div class="form-text">Describe what attendees can expect at your event.</div>
+                    </div>
+                    
+                    <!-- Short Description -->
+                    <div class="mb-3">
+                        {{ form.short_description.label_tag }}
+                        {{ form.short_description }}
+                        {% if form.short_description.errors %}
+                            <div class="invalid-feedback d-block">{{ form.short_description.errors }}</div>
+                        {% endif %}
+                        <div class="form-text">A brief summary shown in event listings (optional).</div>
+                    </div>
+                    
+                    <!-- Event Categories -->
+                    <div class="mb-3">
+                        {{ form.categories.label_tag }}
+                        {{ form.categories }}
+                        {% if form.categories.errors %}
+                            <div class="invalid-feedback d-block">{{ form.categories.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-flex justify-content-end mt-4">
+                        <a href="#date-location" class="btn btn-primary next-section">
+                            Continue <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Section 2: Date & Location -->
+                <div id="date-location" class="form-section">
+                    <h4 class="mb-4">Date & Location</h4>
+                    
+                    <div class="row g-3">
+                        <!-- Start Date -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.start_date.label_tag }}
+                                {{ form.start_date }}
+                                {% if form.start_date.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.start_date.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- End Date -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.end_date.label_tag }}
+                                {{ form.end_date }}
+                                {% if form.end_date.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.end_date.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Registration Deadline -->
+                    <div class="mb-4">
+                        {{ form.registration_deadline.label_tag }}
+                        {{ form.registration_deadline }}
+                        {% if form.registration_deadline.errors %}
+                            <div class="invalid-feedback d-block">{{ form.registration_deadline.errors }}</div>
+                        {% endif %}
+                        <div class="form-text">Optional. If not set, registration will remain open until the event starts.</div>
+                    </div>
+                    
+                    <!-- Event Type (Virtual or In-Person) -->
+                    <div class="mb-4">
+                        <label class="form-label">Event Type</label>
+                        <div class="toggle-button-group">
+                            <input type="radio" class="btn-check" name="event-type" id="in-person" autocomplete="off" checked>
+                            <label class="btn" for="in-person">In-Person</label>
+                            
+                            <input type="radio" class="btn-check" name="event-type" id="virtual" autocomplete="off">
+                            <label class="btn" for="virtual">Virtual</label>
+                        </div>
+                        <input type="checkbox" name="{{ form.is_virtual.name }}" id="{{ form.is_virtual.id_for_label }}" class="d-none" {% if form.is_virtual.value %}checked{% endif %}>
+                    </div>
+                    
+                    <!-- Physical Location (shown if in-person) -->
+                    <div id="physical-location" class="mb-4 {% if form.is_virtual.value %}d-none{% endif %}">
+                        {{ form.location.label_tag }}
+                        {{ form.location }}
+                        {% if form.location.errors %}
+                            <div class="invalid-feedback d-block">{{ form.location.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Virtual Link (shown if virtual) -->
+                    <div id="virtual-location" class="mb-4 {% if not form.is_virtual.value %}d-none{% endif %}">
+                        {{ form.virtual_link.label_tag }}
+                        {{ form.virtual_link }}
+                        {% if form.virtual_link.errors %}
+                            <div class="invalid-feedback d-block">{{ form.virtual_link.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="#basic-details" class="btn btn-outline-secondary prev-section">
+                            <i class="fas fa-arrow-left me-1"></i> Back
+                        </a>
+                        <a href="#additional-info" class="btn btn-primary next-section">
+                            Continue <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Section 3: Additional Info -->
+                <div id="additional-info" class="form-section">
+                    <h4 class="mb-4">Additional Information</h4>
+                    
+                    <!-- Event Capacity -->
+                    <div class="mb-4">
+                        {{ form.capacity.label_tag }}
+                        {{ form.capacity }}
+                        {% if form.capacity.errors %}
+                            <div class="invalid-feedback d-block">{{ form.capacity.errors }}</div>
+                        {% endif %}
+                        <div class="form-text">Leave empty for unlimited capacity.</div>
+                    </div>
+                    
+                    <!-- Event Image -->
+                    <div class="mb-4">
+                        <label for="{{ form.image.id_for_label }}" class="form-label">Event Image</label>
+                        <div class="input-group mb-3">
+                            <input type="file" name="{{ form.image.name }}" id="{{ form.image.id_for_label }}" class="form-control" accept="image/*">
+                            <button type="button" class="btn btn-outline-secondary" id="removeImage">Clear</button>
+                        </div>
+                        {% if form.instance.image %}
+                            <div class="d-flex align-items-center mt-2">
+                                <img src="{{ form.instance.image.url }}" alt="Current image" class="img-thumbnail me-3" style="max-height: 100px;">
+                                <small class="text-muted">Current image</small>
+                            </div>
+                        {% endif %}
+                        <img id="imagePreview" src="#" alt="Image preview" class="image-preview">
+                        {% if form.image.errors %}
+                            <div class="invalid-feedback d-block">{{ form.image.errors }}</div>
+                        {% endif %}
+                        <div class="form-text">Recommended size: 1200×600 pixels (2:1 ratio).</div>
+                    </div>
+                    
+                    {% if form.instance.id %}
+                    <div class="alert alert-info mb-4">
+                        <i class="fas fa-info-circle me-2"></i>
+                        You're editing an existing event. When you submit, the changes will be saved.
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning mb-4">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Your event will be created as a draft and will be reviewed before being published.
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="#date-location" class="btn btn-outline-secondary prev-section">
+                            <i class="fas fa-arrow-left me-1"></i> Back
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas {% if form.instance.id %}fa-save{% else %}fa-plus-circle{% endif %} me-1"></i>
+                            {% if form.instance.id %}Update Event{% else %}Create Event{% endif %}
+                        </button>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/js/select2.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.9/flatpickr.min.js"></script>
 <script>
-    $(document).ready(function() {
-        // Handle virtual event toggle
-        $('#{{ form.is_virtual.id_for_label }}').change(function() {
-            if($(this).is(':checked')) {
-                $('.location-field').hide();
-                $('.virtual-link-field').show();
-            } else {
-                $('.location-field').show();
-                $('.virtual-link-field').hide();
-            }
-        }).trigger('change');
+document.addEventListener('DOMContentLoaded', function() {
+    $('.select2').select2({
+        placeholder: "Select categories",
+        width: '100%'
     });
+    
+    flatpickr("input[name='start_date']", {
+        enableTime: true,
+        dateFormat: "Y-m-d H:i",
+    });
+    
+    flatpickr("input[name='end_date']", {
+        enableTime: true,
+        dateFormat: "Y-m-d H:i",
+    });
+    
+    flatpickr("input[name='registration_deadline']", {
+        enableTime: true,
+        dateFormat: "Y-m-d H:i",
+    });
+    
+    const sections = document.querySelectorAll('.form-section');
+    const navItems = document.querySelectorAll('.list-group-item');
+    
+    document.querySelectorAll('.next-section, .prev-section').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href');
+            
+            sections.forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            document.querySelector(targetId).style.display = 'block';
+            
+            navItems.forEach(item => {
+                item.classList.remove('active');
+                
+                const icon = item.querySelector('.rounded-circle');
+                if (icon) {
+                    icon.classList.remove('bg-primary');
+                    icon.classList.add('bg-light');
+                    
+                    const iconInside = icon.querySelector('i');
+                    if (iconInside) {
+                        iconInside.classList.remove('text-white');
+                        iconInside.classList.add('text-muted');
+                    }
+                }
+                
+                if (item.getAttribute('href') === targetId) {
+                    item.classList.add('active');
+                    
+                    const activeIcon = item.querySelector('.rounded-circle');
+                    if (activeIcon) {
+                        activeIcon.classList.remove('bg-light');
+                        activeIcon.classList.add('bg-primary');
+                        
+                        const activeIconInside = activeIcon.querySelector('i');
+                        if (activeIconInside) {
+                            activeIconInside.classList.remove('text-muted');
+                            activeIconInside.classList.add('text-white');
+                        }
+                    }
+                }
+            });
+            
+            window.scrollTo(0, document.querySelector(targetId).offsetTop - 20);
+        });
+    });
+    
+    navItems.forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href');
+            
+            sections.forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            document.querySelector(targetId).style.display = 'block';
+            
+            navItems.forEach(navItem => {
+                navItem.classList.remove('active');
+                
+                const icon = navItem.querySelector('.rounded-circle');
+                if (icon) {
+                    icon.classList.remove('bg-primary');
+                    icon.classList.add('bg-light');
+                    
+                    const iconInside = icon.querySelector('i');
+                    if (iconInside) {
+                        iconInside.classList.remove('text-white');
+                        iconInside.classList.add('text-muted');
+                    }
+                }
+            });
+            
+            this.classList.add('active');
+            
+            const activeIcon = this.querySelector('.rounded-circle');
+            if (activeIcon) {
+                activeIcon.classList.remove('bg-light');
+                activeIcon.classList.add('bg-primary');
+                
+                const activeIconInside = activeIcon.querySelector('i');
+                if (activeIconInside) {
+                    activeIconInside.classList.remove('text-muted');
+                    activeIconInside.classList.add('text-white');
+                }
+            }
+            
+            window.scrollTo(0, document.querySelector(targetId).offsetTop - 20);
+        });
+    });
+    
+    const virtualRadio = document.getElementById('virtual');
+    const inPersonRadio = document.getElementById('in-person');
+    const isVirtualCheckbox = document.getElementById('{{ form.is_virtual.id_for_label }}');
+    const physicalLocation = document.getElementById('physical-location');
+    const virtualLocation = document.getElementById('virtual-location');
+    
+    if (isVirtualCheckbox.checked) {
+        virtualRadio.checked = true;
+    } else {
+        inPersonRadio.checked = true;
+    }
+    
+    virtualRadio.addEventListener('change', function() {
+        if (this.checked) {
+            isVirtualCheckbox.checked = true;
+            physicalLocation.classList.add('d-none');
+            virtualLocation.classList.remove('d-none');
+        }
+    });
+    
+    inPersonRadio.addEventListener('change', function() {
+        if (this.checked) {
+            isVirtualCheckbox.checked = false;
+            virtualLocation.classList.add('d-none');
+            physicalLocation.classList.remove('d-none');
+        }
+    });
+    
+    const imageInput = document.getElementById('{{ form.image.id_for_label }}');
+    const imagePreview = document.getElementById('imagePreview');
+    const removeImageBtn = document.getElementById('removeImage');
+    
+    imageInput.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imagePreview.src = e.target.result;
+                imagePreview.style.display = 'block';
+            }
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
+    
+    removeImageBtn.addEventListener('click', function() {
+        imageInput.value = '';
+        imagePreview.src = '';
+        imagePreview.style.display = 'none';
+    });
+    
+    sections.forEach((section, index) => {
+        if (index === 0) {
+            section.style.display = 'block';
+        } else {
+            section.style.display = 'none';
+        }
+    });
+});
 </script>
 {% endblock %}
