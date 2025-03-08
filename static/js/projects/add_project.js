@@ -1,12 +1,10 @@
 document.addEventListener("DOMContentLoaded", function () {
-  // Elements for image upload
   const dropArea = document.getElementById("drop-area");
   const fileInput = document.getElementById("fileElem");
   const preview = document.getElementById("preview");
   const browseButton = document.getElementById("browseButton");
   const removeButton = document.querySelector(".remove-image");
 
-  // Form elements for validation
   const form = document.getElementById("projectForm");
   const titleInput = document.querySelector("input[name='title']");
   const descriptionInput = document.querySelector(
@@ -16,17 +14,14 @@ document.addEventListener("DOMContentLoaded", function () {
   const techStackInput = document.querySelector("input[name='tech_stack']");
   const submitButton = document.getElementById("submitButton");
 
-  // Character counter for description
   const charCounter = document.querySelector(".char-counter");
   const charCount = document.getElementById("char-count");
   const charMax = document.getElementById("char-max");
   const MAX_CHARS = 500;
   charMax.textContent = MAX_CHARS;
 
-  // Tech stack pills container
   const techPillsContainer = document.getElementById("tech-pills-container");
 
-  // GitHub repository preview
   const repoPreview = document.getElementById("repo-preview");
   const repoName = document.getElementById("repo-name");
   const repoStars = document.getElementById("repo-stars");
@@ -43,7 +38,6 @@ document.addEventListener("DOMContentLoaded", function () {
   const readmeMarkdown = document.getElementById("readme-markdown");
   const readmeLoading = document.getElementById("readme-loading");
 
-  // Add CSS for error state
   const style = document.createElement("style");
   style.textContent = `
     .repo-preview.error {
@@ -56,10 +50,7 @@ document.addEventListener("DOMContentLoaded", function () {
   `;
   document.head.appendChild(style);
 
-  // Hide README container initially
   readmePreviewContainer.style.display = "none";
-
-  // Set submit button as initially disabled
   submitButton.disabled = true;
 
   // Form validation
@@ -105,7 +96,34 @@ document.addEventListener("DOMContentLoaded", function () {
     return isValid;
   }
 
-  // Live input validation
+  // Clear GitHub data and associated fields
+  function clearGitHubData() {
+    // Reset repo preview
+    repoPreview.classList.remove("active", "loading", "error");
+    repoName.textContent = "";
+    repoStars.textContent = "";
+    repoForks.textContent = "";
+    repoUpdated.textContent = "";
+    repoDescription.textContent = "";
+
+    // Reset README preview
+    readmePreviewContainer.style.display = "none";
+    readmePlaceholder.style.display = "flex";
+    readmeMarkdown.style.display = "none";
+    readmeLoading.style.display = "none";
+    readmeMarkdown.innerHTML = "";
+
+    // Reset GitHub link verification status
+    githubLinkInput.dataset.verified = "false";
+
+    // Clear tech stack if it was auto-populated
+    if (techStackInput.dataset.autoPopulated === "true") {
+      techStackInput.value = "";
+      updateTechPills();
+      techStackInput.dataset.autoPopulated = "false";
+    }
+  }
+
   titleInput.addEventListener("input", function () {
     if (this.value.trim()) {
       this.classList.remove("is-invalid");
@@ -145,20 +163,27 @@ document.addEventListener("DOMContentLoaded", function () {
 
   githubLinkInput.addEventListener("input", function () {
     const githubRegex = /^https?:\/\/github\.com\/[\w-]+\/[\w.-]+\/?$/;
+
+    // Clear existing data whenever the GitHub link is changed
+    clearGitHubData();
+
+    // Track if this was an auto-populated field for the title and description
+    const previousTitle =
+      titleInput.dataset.autoPopulated === "true" ? "" : titleInput.value;
+    const previousDescription =
+      descriptionInput.dataset.autoPopulated === "true"
+        ? ""
+        : descriptionInput.value;
+
+    titleInput.dataset.autoPopulated = "false";
+    descriptionInput.dataset.autoPopulated = "false";
+
     if (this.value.trim() && githubRegex.test(this.value)) {
       fetchGitHubRepoInfo(this.value);
     } else {
       this.classList.add("is-invalid");
       this.classList.remove("is-valid");
-      this.dataset.verified = "false";
       validateForm();
-      repoPreview.classList.remove("active");
-
-      // Hide README preview container
-      readmePreviewContainer.style.display = "none";
-      readmePlaceholder.style.display = "flex";
-      readmeMarkdown.style.display = "none";
-      readmeLoading.style.display = "none";
     }
   });
 
@@ -173,7 +198,6 @@ document.addEventListener("DOMContentLoaded", function () {
     };
   }
 
-  // GitHub repository info fetch
   function fetchGitHubRepoInfo(url) {
     const repoInfo = extractRepoInfo(url);
     if (!repoInfo) {
@@ -184,7 +208,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const { owner, repo } = repoInfo;
 
-    // Show loading state
     repoPreview.classList.add("loading");
     repoPreview.classList.remove("error");
     githubLinkInput.dataset.verified = "false";
@@ -240,6 +263,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!titleInput.value.trim()) {
           titleInput.value = data.name;
           titleInput.classList.add("is-valid");
+          titleInput.dataset.autoPopulated = "true";
           validateForm();
         }
 
@@ -247,6 +271,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!descriptionInput.value.trim() && data.description) {
           descriptionInput.value = data.description;
           descriptionInput.classList.add("is-valid");
+          descriptionInput.dataset.autoPopulated = "true";
           charCount.textContent = data.description.length;
           validateForm();
         }
@@ -341,6 +366,7 @@ document.addEventListener("DOMContentLoaded", function () {
           // Add languages to tech stack input if it's empty
           if (!techStackInput.value.trim()) {
             techStackInput.value = languages.join(", ");
+            techStackInput.dataset.autoPopulated = "true";
             updateTechPills();
           }
         }
