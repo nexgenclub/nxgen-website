@@ -80,30 +80,15 @@
                             </div>
                             
                             <div class="col-12">
-                                <div class="col-12">
-                                    <label for="{{ form.categories.id_for_label }}" class="form-label">Categories</label>
-                                    {% if form.categories.field.widget.input_type == 'select' %}
-                                        {{ form.categories }}
-                                    {% else %}
-                                        <select name="{{ form.categories.name }}" 
-                                                id="{{ form.categories.id_for_label }}" 
-                                                class="form-select select2">
-                                            {% for choice in form.categories.field.choices %}
-                                                <option value="{{ choice.0 }}"
-                                                        {% if choice.0 == form.categories.value %}selected{% endif %}>
-                                                    {{ choice.1 }}
-                                                </option>
-                                            {% endfor %}
-                                        </select>
-                                    {% endif %}
-                                    {% if form.categories.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {% for error in form.categories.errors %}
-                                                {{ error }}
-                                            {% endfor %}
-                                        </div>
-                                    {% endif %}
-                                </div>
+                                <label for="{{ form.categories.id_for_label }}" class="form-label">Categories</label>
+                                {{ form.categories }}
+                                {% if form.categories.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.categories.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
                             </div>
                             
                             <!-- Date and Time -->
@@ -251,11 +236,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
 <script>
     $(document).ready(function() {
-        // Initialize Select2
-        $('.select2').select2({
-            theme: 'bootstrap-5'
-        });
-        
         // Handle virtual event toggle
         $('#{{ form.is_virtual.id_for_label }}').change(function() {
             if($(this).is(':checked')) {
