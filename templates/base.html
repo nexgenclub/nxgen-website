@@ -242,6 +242,18 @@
                 <i class="fas fa-home fa-fw me-2"></i> Home
             </a>
             
+            <a href="{% url 'forums:forum_home' %}" class="sidebar-menu-item">
+                <i class="fas fa-comments fa-fw me-2"></i> Forums
+            </a>
+            
+            <a href="{% url 'courses:course_list' %}" class="sidebar-menu-item">
+                <i class="fas fa-graduation-cap fa-fw me-2"></i> Courses
+            </a>
+
+            <a href="{% url 'projects:project_home' %}" class="sidebar-menu-item">
+                <i class="fas fa-lightbulb fa-fw me-2"></i> Projects
+            </a>
+ 
             <!-- Other menu items here -->
             <a href="#" class="sidebar-menu-item">
                 <i class="fas fa-chart-line fa-fw me-2"></i> Analytics
@@ -260,6 +272,10 @@
                 
                 <a href="{% url 'edit_profile' %}" class="sidebar-menu-item">
                     <i class="fas fa-edit fa-fw me-2"></i> Edit Profile
+                </a>
+                
+                <a href="{% url 'courses:my_courses' %}" class="sidebar-menu-item">
+                    <i class="fas fa-book fa-fw me-2"></i> My Courses
                 </a>
                 
                 <div class="sidebar-divider"></div>
@@ -297,6 +313,15 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'home' %}">Home</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'forums:forum_home' %}">Forums</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'courses:course_list' %}">Courses</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'projects:project_home' %}">Projects</a>
+                    </li>
                     <!-- Add more navigation items as needed -->
                 </ul>
                 <ul class="navbar-nav">
@@ -313,6 +338,7 @@
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a class="dropdown-item" href="{% url 'profile' %}">View Profile</a></li>
                                 <li><a class="dropdown-item" href="{% url 'edit_profile' %}">Edit Profile</a></li>
+                                <li><a class="dropdown-item" href="{% url 'courses:my_courses' %}">My Courses</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <form action="{% url 'logout' %}" method="post" class="dropdown-item p-0">
@@ -390,7 +416,6 @@
             
             function toggleSidebar() {
                 sidebar.classList.toggle('show');
-                
                 if (sidebar.classList.contains('show')) {
                     sidebarOverlay.style.display = 'block';
                     document.body.style.overflow = 'hidden';
@@ -399,13 +424,11 @@
                     document.body.style.overflow = '';
                 }
             }
-            
             sidebarToggler.addEventListener('click', toggleSidebar);
             closeSidebar.addEventListener('click', toggleSidebar);
             sidebarOverlay.addEventListener('click', toggleSidebar);
             
             const notificationsContainer = document.getElementById('notificationsContainer');
-            
             function createNotification(message, type) {
                 const notification = document.createElement('div');
                 notification.className = `notification notification-${type}`;
@@ -423,7 +446,6 @@
                     icon = 'exclamation-triangle';
                     title = 'Warning';
                 }
-                
                 notification.innerHTML = `
                     <div class="notification-icon">
                         <i class="fas fa-${icon}"></i>
@@ -438,12 +460,10 @@
                 `;
                 
                 notificationsContainer.appendChild(notification);
-                
                 const closeButton = notification.querySelector('.notification-close');
                 closeButton.addEventListener('click', function() {
                     notification.remove();
                 });
-                
                 setTimeout(() => {
                     notification.remove();
                 }, 5500); // 5s fadeout + 0.5s buffer
@@ -456,12 +476,10 @@
                     else if (type === 'debug' || type === 'info') type = 'info';
                     else if (type === 'success') type = 'success';
                     else if (type === 'warning') type = 'warning';
-                    
                     createNotification(
                         "{{ message|escapejs }}", 
                         type
                     );
-                    
                     console.log("Message created:", "{{ message|escapejs }}", type);
                 {% endfor %}
             {% endif %}

@@ -1,0 +1,253 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create New Topic - Forums{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
+<style>
+    .CodeMirror {
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+    }
+    
+    .editor-toolbar {
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem 0.25rem 0 0;
+        border-bottom: 0;
+    }
+    
+    .preview-area {
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        padding: 1rem;
+        margin-top: 1rem;
+        min-height: 200px;
+        background-color: #fff;
+    }
+    
+    .preview-area pre {
+        background-color: #f6f8fa;
+        border-radius: 6px;
+        padding: 16px;
+        overflow: auto;
+    }
+    
+    .preview-area code {
+        background-color: #f6f8fa;
+        padding: 0.2em 0.4em;
+        border-radius: 3px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mt-3 mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'forums:forum_home' %}">Forums</a></li>
+            <li class="breadcrumb-item active">Create New Topic</li>
+        </ol>
+    </nav>
+    
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h1 class="h4 mb-0">Create New Topic</h1>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{% url 'forums:create_topic' %}" id="createTopicForm">
+                {% csrf_token %}
+                
+                <!-- Topic Title -->
+                <div class="mb-3">
+                    <label for="{{ topic_form.title.id_for_label }}" class="form-label">Title</label>
+                    {{ topic_form.title }}
+                    {% if topic_form.title.errors %}
+                        <div class="text-danger small mt-1">{{ topic_form.title.errors }}</div>
+                    {% endif %}
+                    <div class="form-text">Be specific and concise with your title.</div>
+                </div>
+                
+                <!-- Category Selection -->
+                <div class="mb-4">
+                    <label for="{{ topic_form.category.id_for_label }}" class="form-label">Category</label>
+                    {{ topic_form.category }}
+                    {% if topic_form.category.errors %}
+                        <div class="text-danger small mt-1">{{ topic_form.category.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label for="{{ post_form.content.id_for_label }}" class="form-label mb-0">Content</label>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="previewToggle">
+                            <label class="form-check-label" for="previewToggle">Preview</label>
+                        </div>
+                    </div>
+                    
+                    <!-- Editor and Preview -->
+                    <div id="editorContainer">
+                        {{ post_form.content }}
+                        {% if post_form.content.errors %}
+                            <div class="text-danger small mt-1">{{ post_form.content.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div id="previewContainer" class="preview-area d-none"></div>
+                    
+                    <div class="form-text mt-2">
+                        <i class="fab fa-markdown me-1"></i> Markdown is supported. See the 
+                        <a href="#" data-bs-toggle="modal" data-bs-target="#markdownHelp">formatting guide</a>.
+                    </div>
+                </div>
+                
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary" id="submitButton">
+                        <i class="fas fa-paper-plane me-2"></i>Create Topic
+                    </button>
+                    <a href="{% url 'forums:forum_home' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Markdown help modal -->
+    <div class="modal fade" id="markdownHelp" tabindex="-1" aria-labelledby="markdownHelpTitle" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="markdownHelpTitle">
+                        <i class="fab fa-markdown me-2"></i>Markdown Formatting Guide
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Text Formatting</h6>
+                            <pre><code># Heading 1
+## Heading 2
+### Heading 3
+
+**Bold text**
+*Italic text*
+~~Strikethrough~~
+
+[Link text](https://example.com)
+
+> Blockquote text
+</code></pre>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Lists</h6>
+                            <pre><code>* Unordered list item
+* Another item
+  * Nested item
+
+1. Ordered list item
+2. Second item
+3. Third item</code></pre>
+                            
+                            <h6>Code</h6>
+                            <pre><code>Inline `code`
+
+```
+function example() {
+  console.log("Hello world");
+}
+```</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('createTopicForm');
+        const originalTextarea = document.querySelector('.md-editor');
+        
+        const hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = originalTextarea.name;
+        hiddenInput.id = 'hidden-content-input';
+        form.appendChild(hiddenInput);
+        
+        const contentName = originalTextarea.name;
+        originalTextarea.removeAttribute('name');
+        originalTextarea.removeAttribute('required');
+        
+        const easyMDE = new EasyMDE({
+            element: originalTextarea,
+            spellChecker: false,
+            autosave: {
+                enabled: true,
+                delay: 10000,
+                uniqueId: 'forum-topic-content',
+            },
+            toolbar: [
+                'bold', 'italic', 'strikethrough', '|',
+                'heading', 'heading-smaller', 'heading-bigger', '|',
+                'code', 'quote', '|',
+                'unordered-list', 'ordered-list', '|',
+                'link', 'image', '|',
+                'table', 'horizontal-rule', '|',
+                'preview', 'side-by-side', 'fullscreen', '|',
+                'guide'
+            ],
+            placeholder: 'Write your post content here...\n\nMarkdown is supported.'
+        });
+
+        easyMDE.codemirror.on('change', function() {
+            hiddenInput.value = easyMDE.value();
+        });
+
+        const previewToggle = document.getElementById('previewToggle');
+        const editorContainer = document.getElementById('editorContainer');
+        const previewContainer = document.getElementById('previewContainer');
+
+        previewToggle.addEventListener('change', function() {
+            if (this.checked) {
+                editorContainer.classList.add('d-none');
+                previewContainer.classList.remove('d-none');
+                
+                const content = easyMDE.value();
+                previewContainer.innerHTML = marked.parse(content);
+                
+                if (window.hljs) {
+                    document.querySelectorAll('#previewContainer pre code').forEach((block) => {
+                        hljs.highlightElement(block);
+                    });
+                }
+            } else {
+                editorContainer.classList.remove('d-none');
+                previewContainer.classList.add('d-none');
+            }
+        });
+
+        form.addEventListener('submit', function(event) {
+            hiddenInput.value = easyMDE.value();
+            
+            if (!hiddenInput.value.trim()) {
+                event.preventDefault();
+                alert('Please enter content for your post.');
+                editorContainer.classList.remove('d-none');
+                previewContainer.classList.add('d-none');
+                previewToggle.checked = false;
+                easyMDE.codemirror.focus();
+                return false;
+            }
+        });
+    });
+</script>
+{% endblock %}
+

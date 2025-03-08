@@ -1,0 +1,29 @@
+{% extends 'base.html' %} {% load static %} {% block title %}All Projects
+{%endblock %} {% block content %} 
+
+<div class="container">
+    <h2 class="mb-4">Projects</h2>
+    <a href="{% url 'projects:add_project' %}" class="btn btn-primary mb-3">Add Project</a>
+    
+    <div class="row">
+        {% for project in projects %}
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    {% if project.image %}
+                        <img src="{{ project.image.url }}" class="card-img-top" alt="{{ project.title }}">
+                    {% else %}
+                        <img src="https://via.placeholder.com/300" class="card-img-top" alt="Default Image">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ project.title }}</h5>
+                        <p class="card-text">{{ project.description|truncatewords:20 }}</p>
+                        <p><strong>Tech Stack:</strong> {{ project.tech_stack }}</p>
+                        <a href="{% url 'projects:project_detail' project.id %}" class="btn btn-primary">View Project</a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}

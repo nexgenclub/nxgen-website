@@ -1,0 +1,280 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Reply to: {{ topic.title }} - Forums{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
+<style>
+    .CodeMirror {
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+    }
+    
+    .editor-toolbar {
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem 0.25rem 0 0;
+        border-bottom: 0;
+    }
+    
+    .preview-area {
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        padding: 1rem;
+        margin-top: 1rem;
+        min-height: 200px;
+        background-color: #fff;
+    }
+    
+    .markdown-content pre {
+        background-color: #f6f8fa;
+        border-radius: 6px;
+        padding: 16px;
+        overflow: auto;
+    }
+    
+    .markdown-content code {
+        background-color: #f6f8fa;
+        padding: 0.2em 0.4em;
+        border-radius: 3px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mt-3 mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'forums:forum_home' %}">Forums</a></li>
+            <li class="breadcrumb-item"><a href="{{ topic.category.get_absolute_url }}">{{ topic.category.name }}</a></li>
+            <li class="breadcrumb-item"><a href="{{ topic.get_absolute_url }}">{{ topic.title }}</a></li>
+            <li class="breadcrumb-item active">Reply</li>
+        </ol>
+    </nav>
+    
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h2 class="h5 mb-0">Original Topic: {{ topic.title }}</h2>
+        </div>
+        <div class="card-body">
+            <div class="d-flex">
+                <div class="me-3">
+                    {% if topic.author.profile.image %}
+                        <img src="{{ topic.author.profile.image.url }}" alt="{{ topic.author.username }}" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+                    {% else %}
+                        <img src="{% static 'images/default.jpg' %}" alt="{{ topic.author.username }}" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+                    {% endif %}
+                </div>
+                <div>
+                    <div class="mb-1">
+                        <span class="fw-bold">{{ topic.author.username }}</span>
+                        <span class="text-muted small">posted {{ topic.created_at|naturaltime }}</span>
+                    </div>
+                    {% with first_post=topic.posts.first %}
+                        <div class="text-muted">
+                            {{ first_post.content|truncatewords:30 }}
+                        </div>
+                    {% endwith %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h2 class="h4 mb-0">Your Reply</h2>
+        </div>
+        <div class="card-body">
+            <form method="POST" id="replyForm">
+                {% csrf_token %}
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label for="{{ form.content.id_for_label }}" class="form-label mb-0">Content</label>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="previewToggle">
+                            <label class="form-check-label" for="previewToggle">Preview</label>
+                        </div>
+                    </div>
+                    
+                    <!-- Editor and Preview -->
+                    <div id="editorContainer">
+                        {{ form.content }}
+                        {% if form.content.errors %}
+                            <div class="text-danger small mt-1">{{ form.content.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div id="previewContainer" class="preview-area d-none markdown-content"></div>
+                    
+                    <div class="form-text mt-2">
+                        <i class="fab fa-markdown me-1"></i> Markdown is supported. See the 
+                        <a href="#" data-bs-toggle="modal" data-bs-target="#markdownHelp">formatting guide</a>.
+                    </div>
+                </div>
+                
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane me-2"></i>Post Reply
+                    </button>
+                    <a href="{{ topic.get_absolute_url }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Markdown help modal -->
+    <div class="modal fade" id="markdownHelp" tabindex="-1" aria-labelledby="markdownHelpTitle" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="markdownHelpTitle">
+                        <i class="fab fa-markdown me-2"></i>Markdown Formatting Guide
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Text Formatting</h6>
+                            <pre><code># Heading 1
+## Heading 2
+### Heading 3
+
+**Bold text**
+*Italic text*
+~~Strikethrough~~
+
+[Link text](https://example.com)
+
+> Blockquote text
+</code></pre>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Lists</h6>
+                            <pre><code>* Unordered list item
+* Another item
+  * Nested item
+
+1. Ordered list item
+2. Second item
+3. Third item</code></pre>
+                            
+                            <h6>Code</h6>
+                            <pre><code>Inline `code`
+
+```python
+def hello_world():
+    print("Hello, world!")
+```</code></pre>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('replyForm');
+        const originalTextarea = document.querySelector('.md-editor');
+        
+        // Create a hidden input that will actually hold the content for form submission
+        const hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = originalTextarea.name;
+        hiddenInput.id = 'hidden-content-input';
+        form.appendChild(hiddenInput);
+        
+        // Keep the original textarea visible but remove its name so it doesn't submit
+        const contentName = originalTextarea.name;
+        originalTextarea.removeAttribute('name');
+        originalTextarea.removeAttribute('required');
+        
+        // Initialize the EasyMDE editor
+        const easyMDE = new EasyMDE({
+            element: originalTextarea,
+            spellChecker: false,
+            autosave: {
+                enabled: true,
+                delay: 10000,
+                uniqueId: 'forum-reply-content',
+            },
+            toolbar: [
+                'bold', 'italic', 'strikethrough', '|',
+                'heading', 'heading-smaller', 'heading-bigger', '|',
+                'code', 'quote', '|',
+                'unordered-list', 'ordered-list', '|',
+                'link', 'image', '|',
+                'table', 'horizontal-rule', '|',
+                'preview', 'side-by-side', 'fullscreen', '|',
+                'guide'
+            ],
+            placeholder: 'Write your reply here...\n\nMarkdown is supported.'
+        });
+
+        // Update hidden input when editor content changes
+        easyMDE.codemirror.on('change', function() {
+            hiddenInput.value = easyMDE.value();
+        });
+        
+        // Set initial value for hidden input
+        hiddenInput.value = easyMDE.value();
+
+        const previewToggle = document.getElementById('previewToggle');
+        const editorContainer = document.getElementById('editorContainer');
+        const previewContainer = document.getElementById('previewContainer');
+
+        previewToggle.addEventListener('change', function() {
+            if (this.checked) {
+                editorContainer.classList.add('d-none');
+                previewContainer.classList.remove('d-none');
+                
+                const content = easyMDE.value();
+                previewContainer.innerHTML = marked.parse(content);
+                
+                if (window.hljs) {
+                    document.querySelectorAll('#previewContainer pre code').forEach((block) => {
+                        if (hljs.highlightElement) {
+                            hljs.highlightElement(block);
+                        } else if (hljs.highlightBlock) {
+                            hljs.highlightBlock(block);
+                        }
+                    });
+                }
+            } else {
+                editorContainer.classList.remove('d-none');
+                previewContainer.classList.add('d-none');
+            }
+        });
+
+        // Handle form submission with custom validation
+        form.addEventListener('submit', function(event) {
+            // Update hidden input with latest content
+            hiddenInput.value = easyMDE.value();
+            
+            // Validate content is not empty
+            if (!hiddenInput.value.trim()) {
+                event.preventDefault();
+                alert('Please enter content for your reply.');
+                editorContainer.classList.remove('d-none');
+                previewContainer.classList.add('d-none');
+                previewToggle.checked = false;
+                easyMDE.codemirror.focus();
+                return false;
+            }
+        });
+    });
+</script>
+{% endblock %}

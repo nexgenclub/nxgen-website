@@ -24,7 +24,10 @@ from accounts.views import home
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', home, name='home'),
-    path('accounts/', include('accounts.urls')), 
+    path('accounts/', include('accounts.urls')),
+    path('forums/', include('forums.urls', namespace='forums')),
+    path('courses/', include('courses.urls', namespace='courses')),  # Add this line
+    path('projects/', include('projects.urls', namespace='projects')),
     path('events/', include('events.urls')),
 ]
 

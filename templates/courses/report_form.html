@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Report Course - {{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'courses:course_list' %}">Courses</a></li>
+            <li class="breadcrumb-item"><a href="{{ course.get_absolute_url }}">{{ course.title }}</a></li>
+            <li class="breadcrumb-item active">Report Course</li>
+        </ol>
+    </nav>
+
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">
+                <i class="fas fa-flag me-2"></i>Report Course
+            </h1>
+            <p class="lead text-muted">
+                Report inappropriate or problematic content in <a href="{{ course.get_absolute_url }}" class="text-decoration-none">{{ course.title }}</a>
+            </p>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Report Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h6 class="alert-heading"><i class="fas fa-info-circle me-2"></i>Important Information</h6>
+                        <p class="mb-0">Please note that all reports are reviewed by our moderation team. Only submit a report if you believe this course violates our community guidelines or terms of service.</p>
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.reason.id_for_label }}" class="form-label">Report Reason</label>
+                            {{ form.reason }}
+                            {% if form.reason.errors %}
+                                <div class="text-danger small mt-1">{{ form.reason.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="{{ form.details.id_for_label }}" class="form-label">Additional Details</label>
+                            {{ form.details }}
+                            {% if form.details.errors %}
+                                <div class="text-danger small mt-1">{{ form.details.errors }}</div>
+                            {% endif %}
+                            <div class="form-text">Please provide specific examples of problematic content and explain why it violates our guidelines.</div>
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-danger px-4">
+                                <i class="fas fa-paper-plane me-2"></i>Submit Report
+                            </button>
+                            <a href="{{ course.get_absolute_url }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Community Guidelines</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Prohibited Content</h6>
+                            <ul class="small">
+                                <li>Hate speech or discriminatory content</li>
+                                <li>Sexually explicit or pornographic material</li>
+                                <li>Content promoting violence or terrorism</li>
+                                <li>Personally identifiable information</li>
+                                <li>Content that violates intellectual property rights</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>When to Report</h6>
+                            <ul class="small">
+                                <li>The content violates our guidelines</li>
+                                <li>The course contains plagiarized material</li>
+                                <li>The content is intentionally misleading</li>
+                                <li>The course promotes harmful information</li>
+                                <li>The course contains malicious links</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -25,7 +25,7 @@ SECRET_KEY = "django-insecure-9!i3vwxe36r&oa#ynj12dy6m^x=%8aj!5&#8%8d4*qvxgv!=54
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -39,12 +39,16 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
 
     # Third-party apps
-    'crispy_forms',  # Optional for better form rendering
-    'crispy_bootstrap5',  # Optional if using Bootstrap 5
+    'crispy_forms', 
+    'crispy_bootstrap5',  
+    "django.contrib.humanize",  
     
     # Your apps
     'events',
     "accounts",
+    "forums", 
+    "courses",  
+    "projects",
 ]
 
 # If using crispy forms

@@ -1,0 +1,362 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if creating %}Create Course{% else %}Edit Course{% endif %} - NXGen Learning{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
+<style>
+    .CodeMirror {
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        min-height: 300px;
+    }
+    
+    .editor-toolbar {
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem 0.25rem 0 0;
+        border-bottom: 0;
+    }
+    
+    .preview-area {
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        padding: 1rem;
+        margin-top: 1rem;
+        min-height: 300px;
+        background-color: #fff;
+    }
+    
+    .section-card {
+        transition: background-color 0.2s ease;
+    }
+    
+    .section-card:hover {
+        background-color: #f8f9fa;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">
+                <i class="fas fa-{% if creating %}plus-circle{% else %}edit{% endif %} me-2"></i>
+                {% if creating %}Create New Course{% else %}Edit Course{% endif %}
+            </h1>
+            <p class="lead text-muted">
+                {% if creating %}
+                    Share your knowledge with the community
+                {% else %}
+                    Update your course "{{ course.title }}"
+                {% endif %}
+            </p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="{% if not creating %}col-md-8{% else %}col-12{% endif %}">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Course Information</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" id="courseForm">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.title.id_for_label }}" class="form-label">Course Title</label>
+                            {{ form.title }}
+                            {% if form.title.errors %}
+                                <div class="text-danger small mt-1">{{ form.title.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.category.id_for_label }}" class="form-label">Category</label>
+                            {{ form.category }}
+                            {% if form.category.errors %}
+                                <div class="text-danger small mt-1">{{ form.category.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.level.id_for_label }}" class="form-label">Difficulty Level</label>
+                            {{ form.level }}
+                            {% if form.level.errors %}
+                                <div class="text-danger small mt-1">{{ form.level.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">Short Description</label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="text-danger small mt-1">{{ form.description.errors }}</div>
+                            {% endif %}
+                            <div class="form-text">A brief summary of your course (displayed in course listings).</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.prerequisites.id_for_label }}" class="form-label">Prerequisites</label>
+                            {{ form.prerequisites }}
+                            {% if form.prerequisites.errors %}
+                                <div class="text-danger small mt-1">{{ form.prerequisites.errors }}</div>
+                            {% endif %}
+                            <div class="form-text">What should students know before taking this course?</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.estimated_duration.id_for_label }}" class="form-label">Estimated Duration (minutes)</label>
+                            {{ form.estimated_duration }}
+                            {% if form.estimated_duration.errors %}
+                                <div class="text-danger small mt-1">{{ form.estimated_duration.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.thumbnail.id_for_label }}" class="form-label">Course Thumbnail</label>
+                            {{ form.thumbnail }}
+                            {% if form.thumbnail.errors %}
+                                <div class="text-danger small mt-1">{{ form.thumbnail.errors }}</div>
+                            {% endif %}
+                            {% if course.thumbnail %}
+                                <div class="mt-2">
+                                    <img src="{{ course.thumbnail.url }}" alt="Current thumbnail" class="img-thumbnail" style="max-height: 100px;">
+                                    <p class="form-text">Current thumbnail. Upload a new one to replace it.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.content.id_for_label }}" class="form-label">Course Overview Content</label>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="form-text">Use Markdown to format your content.</div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="previewToggle">
+                                    <label class="form-check-label" for="previewToggle">Preview</label>
+                                </div>
+                            </div>
+                            
+                            <div id="editorContainer">
+                                {{ form.content }}
+                                {% if form.content.errors %}
+                                    <div class="text-danger small mt-1">{{ form.content.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div id="previewContainer" class="preview-area d-none markdown-content"></div>
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary px-4" id="submitButton">
+                                <i class="fas fa-save me-2"></i>Save Course
+                            </button>
+                            
+                            {% if not creating and course.status == 'draft' %}
+                                <a href="{% url 'courses:publish_course' course.slug %}" class="btn btn-success">
+                                    <i class="fas fa-paper-plane me-2"></i>Publish
+                                </a>
+                            {% endif %}
+                            
+                            <a href="{% if creating %}{% url 'courses:course_list' %}{% else %}{{ course.get_absolute_url }}{% endif %}" class="btn btn-outline-secondary">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        {% if not creating and course %}
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="card-header bg-info text-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Course Sections</h5>
+                            <a href="{% url 'courses:add_section' course.slug %}" class="btn btn-sm btn-light">
+                                <i class="fas fa-plus me-1"></i>Add
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if sections %}
+                            <ul class="list-group list-group-flush">
+                                {% for section in sections %}
+                                    <li class="list-group-item section-card">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <span class="badge bg-light text-dark me-2">{{ section.order }}</span>
+                                                <span>{{ section.title }}</span>
+                                            </div>
+                                            <div>
+                                                <a href="{% url 'courses:edit_section' section.id %}" class="btn btn-sm btn-outline-primary me-1">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <a href="{% url 'courses:delete_section' section.id %}" class="btn btn-sm btn-outline-danger">
+                                                    <i class="fas fa-trash"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <div class="p-4 text-center">
+                                <p class="mb-3 text-muted">
+                                    <i class="fas fa-info-circle me-2"></i>No sections yet
+                                </p>
+                                <a href="{% url 'courses:add_section' course.slug %}" class="btn btn-primary">
+                                    <i class="fas fa-plus me-2"></i>Create Your First Section
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0">Course Status</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <span class="badge {% if course.status == 'draft' %}bg-warning{% elif course.status == 'published' %}bg-success{% elif course.status == 'moderated' %}bg-danger{% else %}bg-secondary{% endif %} p-2">
+                                <i class="fas {% if course.status == 'draft' %}fa-pencil-alt{% elif course.status == 'published' %}fa-check-circle{% elif course.status == 'moderated' %}fa-exclamation-triangle{% else %}fa-archive{% endif %} me-1"></i>
+                                {{ course.get_status_display }}
+                            </span>
+                            
+                            <div class="mt-2 small">
+                                <i class="fas fa-calendar-alt me-1"></i> Created: {{ course.created_at|date:"M d, Y" }}
+                                {% if course.published_at %}
+                                    <br>
+                                    <i class="fas fa-paper-plane me-1"></i> Published: {{ course.published_at|date:"M d, Y" }}
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        {% if course.status == 'draft' %}
+                            <div class="alert alert-info small">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Your course is in draft mode. Only you can see it. Add sections and then publish when you're ready.
+                            </div>
+                            
+                            {% if not sections %}
+                                <div class="alert alert-warning small">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>
+                                    You need to add at least one section before publishing your course.
+                                </div>
+                            {% else %}
+                                <a href="{% url 'courses:publish_course' course.slug %}" class="btn btn-success w-100">
+                                    <i class="fas fa-paper-plane me-2"></i>Publish Course
+                                </a>
+                            {% endif %}
+                        {% elif course.status == 'published' %}
+                            <div class="alert alert-success small">
+                                <i class="fas fa-check-circle me-1"></i>
+                                Your course is published and visible to everyone!
+                            </div>
+                            <a href="{{ course.get_absolute_url }}" class="btn btn-primary w-100">
+                                <i class="fas fa-eye me-2"></i>View Published Course
+                            </a>
+                        {% elif course.status == 'moderated' %}
+                            <div class="alert alert-danger small">
+                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                Your course is under moderation review due to reported content.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('courseForm');
+        const originalTextarea = document.querySelector('.md-editor');
+        
+        if (originalTextarea) {
+            // Create a hidden input to store the actual content value
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = originalTextarea.name;
+            hiddenInput.id = 'hidden-content-input';
+            form.appendChild(hiddenInput);
+            
+            // Store the original content and remove the name attribute from the textarea
+            const contentName = originalTextarea.name;
+            hiddenInput.value = originalTextarea.value || '';  // Initialize with current value if any
+            originalTextarea.removeAttribute('name');
+            originalTextarea.removeAttribute('required');
+            
+            // Initialize EasyMDE
+            const easyMDE = new EasyMDE({
+                element: originalTextarea,
+                spellChecker: false,
+                autosave: {
+                    enabled: true,
+                    delay: 10000,
+                    uniqueId: 'course-content-editor{% if not creating %}-{{ course.id }}{% endif %}',
+                },
+                toolbar: [
+                    'bold', 'italic', 'strikethrough', '|',
+                    'heading', 'heading-smaller', 'heading-bigger', '|',
+                    'code', 'quote', '|',
+                    'unordered-list', 'ordered-list', '|',
+                    'link', 'image', '|',
+                    'table', 'horizontal-rule', '|',
+                    'preview', 'side-by-side', 'fullscreen', '|',
+                    'guide'
+                ],
+                placeholder: 'Write your course content here...\n\nMarkdown is supported.',
+                initialValue: originalTextarea.value  // Set initial value
+            });
+
+            // Update hidden input whenever content changes
+            easyMDE.codemirror.on('change', function() {
+                hiddenInput.value = easyMDE.value();
+            });
+
+            // Handle the preview toggle
+            const previewToggle = document.getElementById('previewToggle');
+            const editorContainer = document.getElementById('editorContainer');
+            const previewContainer = document.getElementById('previewContainer');
+
+            previewToggle.addEventListener('change', function() {
+                if (this.checked) {
+                    editorContainer.classList.add('d-none');
+                    previewContainer.classList.remove('d-none');
+                    
+                    const content = easyMDE.value();
+                    previewContainer.innerHTML = marked.parse(content);
+                } else {
+                    editorContainer.classList.remove('d-none');
+                    previewContainer.classList.add('d-none');
+                }
+            });
+
+            // Validate form submission
+            form.addEventListener('submit', function(event) {
+                // Ensure the hidden input has the current editor content
+                hiddenInput.value = easyMDE.value();
+                
+                // Add validation if needed
+                if (!hiddenInput.value.trim()) {
+                    event.preventDefault();
+                    alert('Please enter content for your course.');
+                    editorContainer.classList.remove('d-none');
+                    previewContainer.classList.add('d-none');
+                    previewToggle.checked = false;
+                    easyMDE.codemirror.focus();
+                    return false;
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
