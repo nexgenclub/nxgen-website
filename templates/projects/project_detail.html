@@ -61,7 +61,7 @@
 
             {% if request.user == project.created_by %}
             <!-- Edit Button -->
-            <a href="" class="btn btn-warning btn-sm"> Edit </a>
+            <a href="{% url 'projects:edit_project' project.slug%}" class="btn btn-warning btn-sm"> Edit </a>
 
             <!-- Delete Button (Opens Modal) -->
             <button
