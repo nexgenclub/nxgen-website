@@ -225,10 +225,14 @@
                            class="btn btn-outline-primary me-2" target="_blank">
                             <i class="fab fa-linkedin-in"></i>
                         </a>
-                        <button class="btn btn-outline-primary" 
+                        <button class="btn btn-outline-primary me-2" 
                                 onclick="navigator.clipboard.writeText('{{ request.build_absolute_uri }}'); showNotification('Link copied to clipboard!');">
                             <i class="fas fa-link"></i>
                         </button>
+                        <a href="https://calendar.google.com/calendar/r/eventedit?text={{ event.title|urlencode }}&dates={{ event.start_date|date:"Ymd\\THis" }}/{{ event.end_date|date:"Ymd\\THis" }}&details={{ event.description|urlencode }}&location={{ event.location|urlencode }}&sf=true&output=xml"
+                           class="btn btn-outline-primary me-2" target="_blank">
+                            <i class="fas fa-calendar-plus"></i> Add to Google Calendar
+                        </a>
                     </div>
                 </div>
             </div>
