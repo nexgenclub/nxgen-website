@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const charCounter = document.querySelector(".char-counter");
   const charCount = document.getElementById("char-count");
   const charMax = document.getElementById("char-max");
-  const MAX_CHARS = 500; // Set your max character limit
+  const MAX_CHARS = 500;
   charMax.textContent = MAX_CHARS;
 
   // Tech stack pills container
@@ -43,8 +43,24 @@ document.addEventListener("DOMContentLoaded", function () {
   const readmeMarkdown = document.getElementById("readme-markdown");
   const readmeLoading = document.getElementById("readme-loading");
 
+  // Add CSS for error state
+  const style = document.createElement("style");
+  style.textContent = `
+    .repo-preview.error {
+      background-color: #fff8f8;
+      border-color: #dc3545;
+    }
+    .repo-preview.error .repo-description {
+      color: #dc3545;
+    }
+  `;
+  document.head.appendChild(style);
+
   // Hide README container initially
   readmePreviewContainer.style.display = "none";
+
+  // Set submit button as initially disabled
+  submitButton.disabled = true;
 
   // Form validation
   function validateForm() {
@@ -70,11 +86,10 @@ document.addEventListener("DOMContentLoaded", function () {
       descriptionInput.classList.add("is-valid");
     }
 
-    // Validate GitHub link
-    const githubRegex = /^https?:\/\/github\.com\/[\w-]+\/[\w.-]+\/?$/;
+    // Validate GitHub link - the link must be verified by the API to be valid
     if (
-      !githubLinkInput.value.trim() ||
-      !githubRegex.test(githubLinkInput.value)
+      !githubLinkInput.dataset.verified ||
+      githubLinkInput.dataset.verified === "false"
     ) {
       githubLinkInput.classList.add("is-invalid");
       githubLinkInput.classList.remove("is-valid");
@@ -83,6 +98,9 @@ document.addEventListener("DOMContentLoaded", function () {
       githubLinkInput.classList.remove("is-invalid");
       githubLinkInput.classList.add("is-valid");
     }
+
+    // Update submit button state
+    submitButton.disabled = !isValid;
 
     return isValid;
   }
@@ -96,6 +114,7 @@ document.addEventListener("DOMContentLoaded", function () {
       this.classList.add("is-invalid");
       this.classList.remove("is-valid");
     }
+    validateForm();
   });
 
   descriptionInput.addEventListener("input", function () {
@@ -120,17 +139,19 @@ document.addEventListener("DOMContentLoaded", function () {
     } else {
       charCounter.classList.remove("warning", "danger");
     }
+
+    validateForm();
   });
 
   githubLinkInput.addEventListener("input", function () {
     const githubRegex = /^https?:\/\/github\.com\/[\w-]+\/[\w.-]+\/?$/;
     if (this.value.trim() && githubRegex.test(this.value)) {
-      this.classList.remove("is-invalid");
-      this.classList.add("is-valid");
       fetchGitHubRepoInfo(this.value);
     } else {
       this.classList.add("is-invalid");
       this.classList.remove("is-valid");
+      this.dataset.verified = "false";
+      validateForm();
       repoPreview.classList.remove("active");
 
       // Hide README preview container
@@ -141,7 +162,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // Function to extract owner and repo from GitHub URL
+  // Extract owner and repo from GitHub URL
   function extractRepoInfo(url) {
     const match = url.match(/github\.com\/([^\/]+)\/([^\/]+)/);
     if (!match) return null;
@@ -155,12 +176,19 @@ document.addEventListener("DOMContentLoaded", function () {
   // GitHub repository info fetch
   function fetchGitHubRepoInfo(url) {
     const repoInfo = extractRepoInfo(url);
-    if (!repoInfo) return;
+    if (!repoInfo) {
+      githubLinkInput.dataset.verified = "false";
+      validateForm();
+      return;
+    }
 
     const { owner, repo } = repoInfo;
 
     // Show loading state
     repoPreview.classList.add("loading");
+    repoPreview.classList.remove("error");
+    githubLinkInput.dataset.verified = "false";
+    validateForm();
 
     // Fetch data from GitHub API
     fetch(`https://api.github.com/repos/${owner}/${repo}`)
@@ -204,10 +232,15 @@ document.addEventListener("DOMContentLoaded", function () {
         repoPreview.classList.remove("loading");
         repoPreview.classList.add("active");
 
+        // Mark GitHub link as verified
+        githubLinkInput.dataset.verified = "true";
+        validateForm();
+
         // Auto-fill project title if empty
         if (!titleInput.value.trim()) {
           titleInput.value = data.name;
           titleInput.classList.add("is-valid");
+          validateForm();
         }
 
         // Auto-fill project description if empty
@@ -215,6 +248,7 @@ document.addEventListener("DOMContentLoaded", function () {
           descriptionInput.value = data.description;
           descriptionInput.classList.add("is-valid");
           charCount.textContent = data.description.length;
+          validateForm();
         }
 
         // Fetch README
@@ -230,7 +264,13 @@ document.addEventListener("DOMContentLoaded", function () {
         // Show error message in the UI
         repoPreview.classList.add("error");
         repoDescription.textContent =
-          "Could not fetch repository information. Please check the URL.";
+          "Repository not found or inaccessible. Please check the URL.";
+
+        // Mark GitHub link as not verified
+        githubLinkInput.dataset.verified = "false";
+        githubLinkInput.classList.add("is-invalid");
+        githubLinkInput.classList.remove("is-valid");
+        validateForm();
 
         // Hide README preview container
         readmePreviewContainer.style.display = "none";
@@ -464,6 +504,9 @@ document.addEventListener("DOMContentLoaded", function () {
   if (techStackInput.value.trim()) {
     updateTechPills();
   }
+
+  // Run initial validation
+  validateForm();
 
   // Initialize GitHub repo preview if there's a valid URL
   if (githubLinkInput.value.trim()) {
