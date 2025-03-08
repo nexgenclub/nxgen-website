@@ -396,13 +396,13 @@
                 <div class="text-center">
                     <h6>Add to Calendar</h6>
                     <div class="d-flex justify-content-center gap-2 mt-2">
-                        <a href="#" class="btn btn-sm btn-outline-secondary" title="Google Calendar">
+                        <a href="https://www.google.com/calendar/render?action=TEMPLATE&text={{ event.title }}&dates={{ event.start_date|date:"Ymd\\THis\\Z" }}/{{ event.end_date|date:"Ymd\\THis\\Z" }}&details={{ event.description }}&location={{ event.location }}&sf=true&output=xml" class="btn btn-sm btn-outline-secondary" title="Google Calendar">
                             <i class="fab fa-google"></i>
                         </a>
-                        <a href="#" class="btn btn-sm btn-outline-secondary" title="Apple Calendar">
+                        <a href="{% url 'events:apple_calendar_event' event.id %}" class="btn btn-sm btn-outline-secondary" title="Apple Calendar">
                             <i class="fas fa-calendar-alt"></i>
                         </a>
-                        <a href="#" class="btn btn-sm btn-outline-secondary" title="Outlook">
+                        <a href="{% url 'events:outlook_calendar_event' event.id %}" class="btn btn-sm btn-outline-secondary" title="Outlook">
                             <i class="fab fa-microsoft"></i>
                         </a>
                     </div>
