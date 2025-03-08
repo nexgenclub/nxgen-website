@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from .models import Project, Like
-from .forms import ProjectForm, CommentForm
+from .models import Project
+from .forms import ProjectForm
 import requests
 import markdown
 from django.utils.safestring import mark_safe
@@ -36,46 +36,15 @@ def project_home(request):
 
 
 
-# Fetch README
-def fetch_github_readme(github_link):
-    if not github_link:
-        return None
-
-    try:
-        # Extract username and repo name
-        parts = github_link.rstrip("/").split("/")
-        username, repo = parts[-2], parts[-1]
-
-        # GitHub API URL to fetch README
-        api_url = f"https://raw.githubusercontent.com/{username}/{repo}/main/README.md"
-
-        response = requests.get(api_url)
-        if response.status_code == 200:
-            readme_html = markdown.markdown(response.text)
-            return mark_safe(readme_html)
-    except Exception as e:
-        print("Error fetching README:", e)
-
-    return None
-
-
 # Show project details
-def project_detail(request, project_id):
-    project = get_object_or_404(Project, id=project_id)
-    comments = project.comments.all()
-    form = CommentForm()
-
-    # Fetch README from GitHub
-    readme_content = fetch_github_readme(project.github_link)
+def project_detail(request, slug):
+    project = get_object_or_404(Project, slug=slug)
 
     return render(
         request,
         "projects/project_detail.html",
         {
             "project": project,
-            "comments": comments,
-            "form": form,
-            "readme_content": readme_content,
         },
     )
 
@@ -104,25 +73,15 @@ def add_project(request):
     return render(request, "projects/add_project.html", {"form": form})
 
 
-# Add a comment
 @login_required
-def add_comment(request, project_id):
-    project = get_object_or_404(Project, id=project_id)
-    if request.method == "POST":
-        form = CommentForm(request.POST)
-        if form.is_valid():
-            comment = form.save(commit=False)
-            comment.project = project
-            comment.user = request.user
-            comment.save()
-    return redirect("projects:project_detail", project_id=project.id)
+def delete_project(request, slug):
+    """Deletes a project if the user is the owner and redirects to project_home."""
+    project = get_object_or_404(Project, slug=slug)
 
-
-# Like a project
-@login_required
-def like_project(request, project_id):
-    project = get_object_or_404(Project, id=project_id)
-    like, created = Like.objects.get_or_create(project=project, user=request.user)
-    if not created:
-        like.delete()  # Toggle like
-    return redirect("projects:project_detail", project_id=project.id)
+    if request.user == project.created_by:  # Ensure only the owner can delete
+        project.delete()
+        messages.success(request, "Project deleted successfully.")
+        return redirect('projects:project_home')  
+    else:
+        messages.error(request, "You are not authorized to delete this project.")
+        return redirect('project_detail', slug=slug) 
