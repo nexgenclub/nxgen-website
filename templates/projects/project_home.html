@@ -1,29 +1,122 @@
-{% extends 'base.html' %} {% load static %} {% block title %}All Projects
-{%endblock %} {% block content %} 
+{% extends 'base.html' %}
+{% load static %}
+{% load github_filters %}
+{% load remove_commas %}
 
-<div class="container">
-    <h2 class="mb-4">Projects</h2>
-    <a href="{% url 'projects:add_project' %}" class="btn btn-primary mb-3">Add Project</a>
-    
+{% block title %}All Projects{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/projects/project_home.css' %}">
+<style>
+    .d-flex {
+  display: flex;
+  gap: 20px;
+}
+
+/* Sidebar */
+.filter-sidebar {
+  width: 20vw;
+  min-width: 250px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+/* Projects List */
+.projects-container {
+  flex-grow: 1;
+}
+.filter-sidebar{
+    max-height: fit-content;
+}
+
+</style>
+<!-- Project Header -->
+<div class="project_home_header">
+  <h2 class="mb-4">Projects</h2>
+  <a href="{% url 'projects:add_project' %}" class="btn-add-project">
+    <i class="fas fa-plus-circle"></i> Add Project
+  </a>
+</div>
+
+<!-- Layout with Sidebar & Content -->
+<div class="d-flex">
+  <!-- Sidebar (Filters) -->
+  <div class="filter-sidebar p-3">
+    <h5 class="mb-3"><i class="fas fa-filter"></i> Filters</h5>
+    <form method="GET" action="{% url 'projects:project_home' %}">
+      <div class="mb-3">
+        <label for="search" class="form-label">Search</label>
+        <input type="text" name="search" id="search" class="form-control" placeholder="Search projects..." value="{{ request.GET.search }}">
+      </div>
+
+      <div class="mb-3">
+        <label for="tech_filter" class="form-label">Technology</label>
+        <select name="tech_filter" id="tech_filter" class="form-select">
+          <option value="">All Tech</option>
+          {% for tech in tech_choices %}
+            <option value="{{ tech }}" {% if request.GET.tech_filter == tech %}selected{% endif %}>{{ tech }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100"><i class="fas fa-search"></i> Apply Filters</button>
+    </form>
+  </div>
+
+  <!-- Projects List -->
+  <div class="projects-container">
     <div class="row">
+      {% if projects %}
         {% for project in projects %}
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    {% if project.image %}
-                        <img src="{{ project.image.url }}" class="card-img-top" alt="{{ project.title }}">
-                    {% else %}
-                        <img src="https://via.placeholder.com/300" class="card-img-top" alt="Default Image">
-                    {% endif %}
-                    <div class="card-body">
-                        <h5 class="card-title">{{ project.title }}</h5>
-                        <p class="card-text">{{ project.description|truncatewords:20 }}</p>
-                        <p><strong>Tech Stack:</strong> {{ project.tech_stack }}</p>
-                        <a href="{% url 'projects:project_detail' project.id %}" class="btn btn-primary">View Project</a>
-                    </div>
-                </div>
+          <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card shadow-sm border rounded">
+              {% if project.image %}
+                <img src="{{ project.image.url }}" class="card-img-top" alt="{{ project.title }}">
+              {% else %}
+                {% with project.github_link|github_username as github_user %}
+                  {% if github_user %}
+                    <img src="https://github.com/{{ github_user }}.png" class="card-img-top" alt="GitHub Profile Image">
+                  {% else %}
+                    <img src="https://via.placeholder.com/400x250" class="card-img-top" alt="Default Image">
+                  {% endif %}
+                {% endwith %}
+              {% endif %}
+              <div class="card-body">
+                <h5 class="card-title">{{ project.title }}</h5>
+                <p class="card-text">{{ project.description|truncatewords:15 }}</p>
+
+                {% with project.tech_stack|split_techs as tech_list %}
+                  {% if tech_list %}
+                    <p><strong>Tech:</strong> 
+                      {% for tech in tech_list|slice:":3" %}
+                        <span class="badge bg-secondary">{{ tech }}</span>
+                      {% endfor %}
+                      {% if tech_list|length > 3 %}
+                        <span class="badge bg-secondary">...</span>
+                      {% endif %}
+                    </p>
+                  {% endif %}
+                {% endwith %}
+
+                <a href="{% url 'projects:project_detail' project.id %}" class="btn btn-primary w-100">
+                  <i class="fas fa-external-link-alt"></i> View
+                </a>
+              </div>
             </div>
+          </div>
         {% endfor %}
+      {% else %}
+        <div class="col-12 text-center mt-4">
+          <h4 class="text-muted"><i class="fas fa-folder-open"></i> No projects found</h4>
+          <p>Be the first to add a project!</p>
+          <a href="{% url 'projects:add_project' %}" class="btn btn-success">
+            <i class="fas fa-plus-circle"></i> Add Project
+          </a>
+        </div>
+      {% endif %}
     </div>
+  </div>
 </div>
 
 {% endblock %}
