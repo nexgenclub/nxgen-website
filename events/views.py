@@ -1,35 +1,20 @@
-# views.py
+# views.py - Fixed version
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.generic import ListView, DetailView, CreateView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
 from django.utils import timezone
-from django.db.models import Q
+from django.db.models import Q, Count, Prefetch
 from django.contrib import messages
-from django.http import JsonResponse
-from .templatetags import custom_filters  # Add this line
-from django.utils.text import slugify
+from django.http import JsonResponse, Http404
 import logging
 
 logger = logging.getLogger(__name__)
 
 from .models import Event, EventCategory, Registration
 from .forms import EventForm, RegistrationForm
-
-# views.py
-from django.shortcuts import get_object_or_404, redirect
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Q, Count, Prefetch
-from django.utils import timezone
-from django.views.generic import ListView, DetailView
-from django.http import Http404, JsonResponse
-from .models import Event, EventCategory, Registration
-from .forms import RegistrationForm
-import logging
-
-logger = logging.getLogger(__name__)
 
 class EventListView(ListView):
     model = Event
@@ -38,15 +23,33 @@ class EventListView(ListView):
     paginate_by = 9
     
     def get_queryset(self):
-        # Start with published events and prefetch related fields for performance
-        queryset = Event.objects.filter(status='published').prefetch_related(
+        # Log total events for debugging
+        logger.debug(f"Total events in database: {Event.objects.count()}")
+        
+        # Start with all events and prefetch related fields for performance
+        base_queryset = Event.objects.prefetch_related(
             'categories',
             Prefetch('registrations', queryset=Registration.objects.filter(status='confirmed'), to_attr='confirmed_registrations')
         )
         
+        logger.debug(f"All events count: {base_queryset.count()}")
+        
+        # Filter for published events or drafts if the user is an organizer or staff
+        if self.request.user.is_authenticated and (self.request.user.is_staff or self.request.user.organized_events.exists()):
+            queryset = base_queryset.filter(
+                Q(status='published') | Q(status='draft', organizers=self.request.user)
+            )
+        else:
+            queryset = base_queryset.filter(status='published')
+        
+        logger.debug(f"Published events count: {queryset.count()}")
+        
         # Filter by event type (upcoming, ongoing, past)
         event_type = self.request.GET.get('type', 'upcoming')
         now = timezone.now()
+        
+        # Save the unfiltered published queryset for debugging
+        events_before_date_filter = queryset.count()
         
         if event_type == 'upcoming':
             queryset = queryset.filter(start_date__gt=now)
@@ -54,6 +57,9 @@ class EventListView(ListView):
             queryset = queryset.filter(start_date__lte=now, end_date__gte=now)
         elif event_type == 'past':
             queryset = queryset.filter(end_date__lt=now)
+        
+        # Debug date filtering
+        logger.debug(f"Events after type filtering ({event_type}): {queryset.count()} (from {events_before_date_filter})")
         
         # Filter by category
         category = self.request.GET.get('category')
@@ -110,23 +116,27 @@ class EventDetailView(DetailView):
             Prefetch('registrations', queryset=Registration.objects.filter(status='confirmed').select_related('attendee'))
         )
         
-        if self.request.user.is_authenticated:
-            # If user is logged in, they might be an organizer
-            event = get_object_or_404(
-                queryset,
-                Q(status='published') | Q(status='draft', organizers=self.request.user),
-                slug=self.kwargs['slug']
-            )
-        else:
-            # Anonymous users can only see published events
-            event = get_object_or_404(
-                queryset,
-                status='published',
-                slug=self.kwargs['slug']
-            )
-        
-        logger.debug(f"Found event: {event}")
-        return event
+        try:
+            if self.request.user.is_authenticated:
+                # If user is logged in, they might be an organizer
+                event = get_object_or_404(
+                    queryset,
+                    Q(status='published') | Q(organizers=self.request.user),
+                    slug=self.kwargs['slug']
+                )
+            else:
+                # Anonymous users can only see published events
+                event = get_object_or_404(
+                    queryset,
+                    status='published',
+                    slug=self.kwargs['slug']
+                )
+            
+            logger.debug(f"Found event: {event}")
+            return event
+        except Http404:
+            logger.warning(f"Event not found with slug: {self.kwargs['slug']}")
+            raise
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -170,13 +180,22 @@ def register_for_event(request, pk):
     if request.method != 'POST':
         return redirect('events:event_list')
     
+    # Debug log
+    logger.debug(f"Attempting to register for event with pk={pk}")
+    
     try:
-        event = get_object_or_404(
-            Event.objects.filter(status='published'),
-            pk=pk
-        )
+        # First just retrieve the event without status filtering
+        event = get_object_or_404(Event, pk=pk)
+        
+        # Then check if it's published
+        if event.status != 'published':
+            logger.warning(f"Registration attempt for non-published event: {event.title} (status: {event.status})")
+            messages.error(request, "The event you're trying to register for isn't published.")
+            return redirect('events:event_list')
+            
     except Http404:
-        messages.error(request, "The event you're trying to register for doesn't exist or isn't published.")
+        logger.warning(f"Registration attempt for non-existent event with pk={pk}")
+        messages.error(request, "The event you're trying to register for doesn't exist.")
         return redirect('events:event_list')
     
     # Check if registration is open
@@ -190,25 +209,36 @@ def register_for_event(request, pk):
         return redirect(event.get_absolute_url())
     
     # Check if user is already registered
-    if Registration.objects.filter(event=event, attendee=request.user).exists():
-        messages.info(request, "You're already registered for this event.")
+    existing_registration = Registration.objects.filter(event=event, attendee=request.user).first()
+    if existing_registration:
+        messages.info(request, f"You're already registered for this event (status: {existing_registration.status}).")
         return redirect(event.get_absolute_url())
     
-    # Create registration
-    try:
-        registration = Registration.objects.create(
-            event=event,
-            attendee=request.user,
-            status='confirmed'
-        )
+    # Process form data if provided
+    form = RegistrationForm(request.POST or None)
+    if form.is_valid():
+        registration = form.save(commit=False)
+        registration.event = event
+        registration.attendee = request.user
+        registration.status = 'confirmed'
+        registration.save()
+        
         messages.success(request, "You've successfully registered for this event!")
-        
-        # Optional: Send confirmation email to user
-        # send_registration_confirmation_email(registration)
-        
-    except Exception as e:
-        logger.error(f"Registration failed: {str(e)}")
-        messages.error(request, "An error occurred during registration. Please try again.")
+        logger.info(f"User {request.user.username} registered for event {event.title} (ID: {event.id})")
+    else:
+        # If the form has errors but we're still creating a basic registration
+        try:
+            registration = Registration.objects.create(
+                event=event,
+                attendee=request.user,
+                status='confirmed'
+            )
+            messages.success(request, "You've successfully registered for this event!")
+            logger.info(f"User {request.user.username} registered for event {event.title} (ID: {event.id})")
+            
+        except Exception as e:
+            logger.error(f"Registration failed: {str(e)}")
+            messages.error(request, "An error occurred during registration. Please try again.")
     
     return redirect(event.get_absolute_url())
 
@@ -219,6 +249,7 @@ def unregister_from_event(request, pk):
         return redirect('events:event_list')
     
     event = get_object_or_404(Event, pk=pk)
+    logger.debug(f"Attempting to unregister from event: {event.title} (ID: {event.id})")
     
     # Check if registration exists
     try:
@@ -236,8 +267,10 @@ def unregister_from_event(request, pk):
         # Delete registration
         registration.delete()
         messages.success(request, "Your registration has been canceled.")
+        logger.info(f"User {request.user.username} unregistered from event {event.title} (ID: {event.id})")
         
     except Registration.DoesNotExist:
+        logger.warning(f"Unregistration attempt for non-registered user: {request.user.username}, event: {event.title}")
         messages.error(request, "You are not registered for this event.")
     
     return redirect(event.get_absolute_url())
@@ -273,7 +306,6 @@ def calendar_events_json(request):
     
     return JsonResponse(calendar_events, safe=False)
 
-# Additional views for managing attendees (new feature)
 
 class ManageAttendeesView(LoginRequiredMixin, DetailView):
     """View for organizers to manage event attendees"""
@@ -323,8 +355,7 @@ def check_in_attendee(request, event_id, registration_id):
     messages.success(request, f"{registration.attendee.get_full_name()} has been checked in.")
     return redirect('events:manage_attendees', pk=event_id)
 
-    
-# views.py
+
 class EventCreateView(LoginRequiredMixin, CreateView):
     model = Event
     form_class = EventForm
@@ -334,14 +365,14 @@ class EventCreateView(LoginRequiredMixin, CreateView):
         # Set initial status to draft
         form.instance.status = 'draft'
         
-        # Let the model handle slug creation in its save() method
-        # We don't need to set the slug here as it's handled in Event.save()
-        
         # Save the form to get an instance with ID
         response = super().form_valid(form)
         
         # Add the current user as an organizer
         form.instance.organizers.add(self.request.user)
+        
+        # Log successful creation
+        logger.info(f"Event created: {form.instance.title} (ID: {form.instance.id}, slug: {form.instance.slug})")
         
         messages.success(self.request, "Event created successfully! It will be published after review.")
         return response
@@ -362,8 +393,8 @@ class EventUpdateView(LoginRequiredMixin, UpdateView):
         return Event.objects.filter(organizers=self.request.user)
     
     def form_valid(self, form):
-        # Let the model handle slug creation/updating in its save() method
-        # We don't need to set the slug here as it's handled in Event.save()
+        # Log the update attempt
+        logger.info(f"Updating event: {form.instance.title} (ID: {form.instance.id})")
         
         response = super().form_valid(form)
         messages.success(self.request, "Event updated successfully!")
@@ -371,5 +402,3 @@ class EventUpdateView(LoginRequiredMixin, UpdateView):
     
     def get_success_url(self):
         return self.object.get_absolute_url()
-
-
