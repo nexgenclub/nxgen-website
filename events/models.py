@@ -1,4 +1,5 @@
-# models.py
+# models.py - Fixed version
+
 import logging
 from django.db import models
 from django.urls import reverse
@@ -16,9 +17,15 @@ class EventCategory(models.Model):
     def __str__(self):
         return self.name
     
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+    
     class Meta:
         verbose_name_plural = "Event Categories"
         ordering = ['name']
+
 
 class Event(models.Model):
     STATUS_CHOICES = (
@@ -48,12 +55,14 @@ class Event(models.Model):
     
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='published')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='published') 
     
     class Meta:
         ordering = ['-start_date']
         indexes = [
             models.Index(fields=['-start_date']),
+            models.Index(fields=['slug']),  # Add index on slug for faster lookups
+            models.Index(fields=['status']),  # Add index on status for filtering
         ]
     
     def __str__(self):
@@ -86,10 +95,11 @@ class Event(models.Model):
         Get similar events based on categories.
         Returns up to 3 upcoming or ongoing events from the same categories.
         """
-        from django.utils import timezone
-        
         # Get the event's categories
         categories = self.categories.all()
+        
+        if not categories:
+            return Event.objects.none()
         
         # Get upcoming or ongoing events in the same categories, excluding this event
         now = timezone.now()
@@ -101,38 +111,30 @@ class Event(models.Model):
         
         # Return up to 3 events
         return similar_events[:3]
-
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.title)
-            if Event.objects.filter(slug=self.slug).exists():
-                self.slug = f"{self.slug}"
-        super().save(*args, **kwargs)
-        logger.debug(f"Saved event: {self}")
-
     
-    # Add these properties to your Event model in models.py
-
     @property
     def registration_percentage(self):
         """Calculate the percentage of capacity filled by registrations."""
         if not self.capacity:
             return 0
-        return min(100, (self.registrations.count() / self.capacity) * 100)
+        registered_count = self.registrations.filter(status__in=['confirmed', 'attended']).count()
+        return min(100, int((registered_count / self.capacity) * 100))
 
     @property
     def spots_left(self):
         """Calculate the number of spots left."""
         if not self.capacity:
             return None  # Unlimited capacity
-        return max(0, self.capacity - self.registrations.count())
+        registered_count = self.registrations.filter(status__in=['confirmed', 'attended']).count()
+        return max(0, self.capacity - registered_count)
 
     @property
     def is_full(self):
         """Check if the event has reached capacity."""
         if not self.capacity:
             return False  # Unlimited capacity
-        return self.registrations.count() >= self.capacity
+        registered_count = self.registrations.filter(status__in=['confirmed', 'attended']).count()
+        return registered_count >= self.capacity
     
     def register_user(self, user):
         """Register a user for this event if possible."""
@@ -145,17 +147,26 @@ class Event(models.Model):
         if Registration.objects.filter(event=self, attendee=user).exists():
             return False, "You are already registered for this event."
         
-        Registration.objects.create(
-            event=self,
-            attendee=user,
-            status='confirmed'
-        )
-        return True, "You've successfully registered for this event!"
+        try:
+            Registration.objects.create(
+                event=self,
+                attendee=user,
+                status='confirmed'
+            )
+            return True, "You've successfully registered for this event!"
+        except Exception as e:
+            logger.error(f"Error registering user {user.username} for event {self.title}: {str(e)}")
+            return False, "An error occurred during registration. Please try again."
 
     def unregister_user(self, user):
         """Unregister a user from this event."""
         try:
             registration = Registration.objects.get(event=self, attendee=user)
+            
+            # Check if it's too late to cancel
+            if self.start_date <= timezone.now():
+                return False, "You cannot cancel registration for an event that has already started."
+                
             registration.delete()
             return True, "Your registration has been canceled."
         except Registration.DoesNotExist:
@@ -175,17 +186,18 @@ class Event(models.Model):
             self.slug = f"{original_slug}-{counter}"
             counter += 1
         
+        # Set a sensible short description if not provided
+        if not self.short_description and self.description:
+            self.short_description = self.description[:247] + "..." if len(self.description) > 250 else self.description
+        
+        # Ensure end date is after start date
+        if self.start_date and self.end_date and self.end_date < self.start_date:
+            self.end_date = self.start_date
+        
         # Call the original save method
         super().save(*args, **kwargs)
         logger.debug(f"Saved event: {self}")
 
-# models.py - Registration model
-from django.db import models
-from django.contrib.auth.models import User
-from django.utils import timezone
-import logging
-
-logger = logging.getLogger(__name__)
 
 class Registration(models.Model):
     STATUS_CHOICES = (
