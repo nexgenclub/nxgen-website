@@ -1,9 +1,162 @@
-{% extends 'base.html' %}
-{% block content %}
-<h2>Add New Project</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-success">Submit</button>
-</form>
+{% extends 'base.html' %}{% load static %} {% block content %}
+<link rel="stylesheet" href="{% static 'css/projects/add_project.css' %}">
+
+<div class="">
+  <div class="">
+    <form method="post" enctype="multipart/form-data" id="projectForm" novalidate>
+      <h4 class="mb-0"><span class="emoji-title"></span> Add a New Project</h4>
+      {% csrf_token %}
+      <div class="form-container">
+        <div class="form-section">
+          <!-- Title -->
+          <div class="mb-3">
+            <label
+              for="{{ form.title.id_for_label }}"
+              class="form-label fw-bold"
+              >Project Title <small class="required">*</small></label
+            >
+            {{ form.title }}
+            <div class="invalid-feedback">Please provide a project title.</div>
+            <div class="valid-feedback">Looks good!</div>
+          </div>
+
+          <!-- Description -->
+          <div class="mb-3 position-relative">
+            <label
+              for="{{ form.description.id_for_label }}"
+              class="form-label fw-bold"
+              >Project Description <small class="required">*</small></label
+            >
+            {{ form.description }}
+            <div class="invalid-feedback">Please provide a project description.</div>
+            <div class="valid-feedback">Great description!</div>
+            <div class="char-counter"><span id="char-count">0</span>/<span id="char-max">500</span> characters</div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <!-- GitHub Link -->
+          <div class="mb-3">
+            <label
+              for="{{ form.github_link.id_for_label }}"
+              class="form-label fw-bold"
+              >GitHub Repository <small class="required">*</small></label
+            >
+            <div class="input-group">
+              <span class="input-group-text"
+                ><i class="fab fa-github"></i
+              ></span>
+              {{ form.github_link }}
+            </div>
+            <div class="invalid-feedback">
+              Please provide a valid GitHub repository URL.
+            </div>
+            <div class="valid-feedback">Valid GitHub repository!</div>
+            <small class="text-muted"
+              >The GitHub link will also be used to extract the project's README and the user's profile picture if no project image is provided.</small
+            >
+            
+            <!-- GitHub Repository Preview -->
+            <div class="repo-preview" id="repo-preview">
+              <div class="repo-header">
+                <div class="repo-icon">
+                  <i class="fab fa-github"></i>
+                </div>
+                <div class="repo-name" id="repo-name">Repository Name</div>
+              </div>
+              <div class="repo-stats">
+                <div class="repo-stat">
+                  <i class="far fa-star"></i>
+                  <span id="repo-stars">0</span> stars
+                </div>
+                <div class="repo-stat">
+                  <i class="fas fa-code-branch"></i>
+                  <span id="repo-forks">0</span> forks
+                </div>
+                <div class="repo-stat">
+                  <i class="far fa-clock"></i>
+                  Updated <span id="repo-updated">recently</span>
+                </div>
+              </div>
+              <div class="repo-description" id="repo-description">
+                Repository description will appear here.
+              </div>
+            </div>
+          </div>
+
+          <!-- Tech Stack -->
+          <div class="mb-3">
+            <label
+              for="{{ form.tech_stack.id_for_label }}"
+              class="form-label fw-bold"
+              >Tech Stack</label
+            >
+            {{ form.tech_stack }}
+            <small class="text-muted"
+              >Separate technologies with commas (e.g., Python, Django,
+              React)</small
+            >
+            <div class="tech-stack-container" id="tech-pills-container"></div>
+          </div>
+        </div>
+
+        <!-- Image Upload -->
+        <div class="form-section">
+          <label class="form-label fw-bold">Project Image (Optional)</label>
+          <div id="drop-area" class="mb-3">
+            <div class="drop-instructions">
+              <i class="fas fa-cloud-upload-alt fa-3x text-secondary mb-2"></i>
+              <p class="mb-2">Drag & Drop Image Here</p>
+              <p class="text-muted small mb-3">or</p>
+              <button type="button" class="btn btn-secondary" id="browseButton">
+                <i class="fas fa-folder-open me-2"></i>Browse Files
+              </button>
+            </div>
+
+            <div class="image-preview-container">
+              <img id="preview" src="" alt="Preview" />
+              <div class="remove-image" title="Remove image">
+                <i class="fas fa-times"></i>
+              </div>
+            </div>
+
+            <input
+              type="file"
+              name="image"
+              id="fileElem"
+              accept="image/*"
+              hidden
+            />
+          </div>
+        </div>
+
+        <!-- Seeking Collaborators Checkbox -->
+        <div class="mb-4">
+          <div class="form-check">
+            {{ form.is_seeking_collaborators }}
+            <label
+              class="form-check-label fw-bold"
+              for="{{ form.is_seeking_collaborators.id_for_label }}"
+            >
+              <i class="fas fa-users me-2"></i>Seeking Collaborators
+            </label>
+          </div>
+        </div>
+
+        <!-- Submit and Cancel Buttons Side by Side -->
+        <div class="action-buttons">
+          <button type="submit" class="btn btn-success" id="submitButton">
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            <span class="submit-text"><i class="fas fa-paper-plane me-2"></i>Submit Project</span>
+            <span class="loading-text">Submitting...</span>
+          </button>
+          <a href="{% url 'projects:project_home' %}" class="btn cancel-btn">
+            <i class="fas fa-times-circle me-1"></i>Cancel
+          </a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+<script src="{% static 'js/projects/add_project.js' %}"></script>
 {% endblock %}
