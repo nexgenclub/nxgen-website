@@ -34,6 +34,18 @@ document.addEventListener("DOMContentLoaded", function () {
   const repoUpdated = document.getElementById("repo-updated");
   const repoDescription = document.getElementById("repo-description");
 
+  // README preview elements
+  const readmePreviewContainer = document.querySelector(
+    ".readme-preview-container"
+  );
+  const readmeContent = document.getElementById("readme-content");
+  const readmePlaceholder = document.getElementById("readme-placeholder");
+  const readmeMarkdown = document.getElementById("readme-markdown");
+  const readmeLoading = document.getElementById("readme-loading");
+
+  // Hide README container initially
+  readmePreviewContainer.style.display = "none";
+
   // Form validation
   function validateForm() {
     let isValid = true;
@@ -120,17 +132,32 @@ document.addEventListener("DOMContentLoaded", function () {
       this.classList.add("is-invalid");
       this.classList.remove("is-valid");
       repoPreview.classList.remove("active");
+
+      // Hide README preview container
+      readmePreviewContainer.style.display = "none";
+      readmePlaceholder.style.display = "flex";
+      readmeMarkdown.style.display = "none";
+      readmeLoading.style.display = "none";
     }
   });
 
-  // GitHub repository info fetch - FIXED VERSION
-  function fetchGitHubRepoInfo(url) {
-    // Extract owner and repo name from URL
+  // Function to extract owner and repo from GitHub URL
+  function extractRepoInfo(url) {
     const match = url.match(/github\.com\/([^\/]+)\/([^\/]+)/);
-    if (!match) return;
+    if (!match) return null;
 
-    const owner = match[1];
-    const repo = match[2].replace(/\/$/, ""); // Remove trailing slash if present
+    return {
+      owner: match[1],
+      repo: match[2].replace(/\/$/, ""), // Remove trailing slash if present
+    };
+  }
+
+  // GitHub repository info fetch
+  function fetchGitHubRepoInfo(url) {
+    const repoInfo = extractRepoInfo(url);
+    if (!repoInfo) return;
+
+    const { owner, repo } = repoInfo;
 
     // Show loading state
     repoPreview.classList.add("loading");
@@ -176,15 +203,110 @@ document.addEventListener("DOMContentLoaded", function () {
         // Remove loading state and show the preview
         repoPreview.classList.remove("loading");
         repoPreview.classList.add("active");
+
+        // Auto-fill project title if empty
+        if (!titleInput.value.trim()) {
+          titleInput.value = data.name;
+          titleInput.classList.add("is-valid");
+        }
+
+        // Auto-fill project description if empty
+        if (!descriptionInput.value.trim() && data.description) {
+          descriptionInput.value = data.description;
+          descriptionInput.classList.add("is-valid");
+          charCount.textContent = data.description.length;
+        }
+
+        // Fetch README
+        fetchReadme(owner, repo);
+
+        // Fetch repository languages for tech stack
+        fetchRepoLanguages(owner, repo);
       })
       .catch((error) => {
         console.error("Error fetching GitHub repository data:", error);
         repoPreview.classList.remove("loading", "active");
 
-        // Show error message in the UI (optional)
+        // Show error message in the UI
         repoPreview.classList.add("error");
         repoDescription.textContent =
           "Could not fetch repository information. Please check the URL.";
+
+        // Hide README preview container
+        readmePreviewContainer.style.display = "none";
+        readmePlaceholder.style.display = "flex";
+        readmeMarkdown.style.display = "none";
+        readmeLoading.style.display = "none";
+      });
+  }
+
+  // Fetch and display README from GitHub
+  function fetchReadme(owner, repo) {
+    // Show README preview container
+    readmePreviewContainer.style.display = "flex";
+
+    // Show loading state
+    readmeLoading.style.display = "flex";
+    readmePlaceholder.style.display = "none";
+    readmeMarkdown.style.display = "none";
+
+    // Fetch README content from GitHub API
+    fetch(`https://api.github.com/repos/${owner}/${repo}/readme`)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`GitHub API request failed: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        // Decode the Base64 content
+        const content = atob(data.content);
+
+        // Convert Markdown to HTML using marked library
+        readmeMarkdown.innerHTML = marked.parse(content);
+
+        // Show the README content
+        readmeLoading.style.display = "none";
+        readmePlaceholder.style.display = "none";
+        readmeMarkdown.style.display = "block";
+      })
+      .catch((error) => {
+        console.error("Error fetching README:", error);
+        readmeLoading.style.display = "none";
+
+        // Show placeholder with error message
+        readmePlaceholder.style.display = "flex";
+        readmePlaceholder.innerHTML = `
+          <i class="fas fa-exclamation-circle fa-3x text-warning mb-3"></i>
+          <p>Could not find a README file in this repository</p>
+        `;
+        readmeMarkdown.style.display = "none";
+      });
+  }
+
+  // Fetch repository languages for tech stack
+  function fetchRepoLanguages(owner, repo) {
+    fetch(`https://api.github.com/repos/${owner}/${repo}/languages`)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`GitHub API request failed: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        // Extract languages from response
+        const languages = Object.keys(data);
+
+        if (languages.length > 0) {
+          // Add languages to tech stack input if it's empty
+          if (!techStackInput.value.trim()) {
+            techStackInput.value = languages.join(", ");
+            updateTechPills();
+          }
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching languages:", error);
       });
   }
 
@@ -260,7 +382,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }, 2000);
   });
 
-  // Prevent default drag behaviors
+  // Prevent default drag behaviors for image upload
   ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
     dropArea.addEventListener(eventName, preventDefaults, false);
   });
