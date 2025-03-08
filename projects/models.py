@@ -4,8 +4,8 @@ from django.utils.text import slugify
 
 class Project(models.Model):
     title = models.CharField(max_length=255)
-    description = models.TextField()
-    github_link = models.URLField(max_length=500, blank=True, null=True)
+    description = models.TextField(max_length=500)
+    github_link = models.URLField(max_length=500, blank=False, null=False)
     tech_stack = models.CharField(max_length=255, help_text="Comma-separated list of technologies")
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="projects")
     image = models.ImageField(upload_to='project_images/', blank=True, null=True)
