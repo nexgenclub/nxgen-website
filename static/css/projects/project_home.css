@@ -80,3 +80,26 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
+
+.d-flex {
+    display: flex;
+    gap: 20px;
+}
+
+/* Sidebar */
+.filter-sidebar {
+    width: 20vw;
+    min-width: 250px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+
+/* Projects List */
+.projects-container {
+    flex-grow: 1;
+}
+
+.filter-sidebar {
+    max-height: fit-content;
+}

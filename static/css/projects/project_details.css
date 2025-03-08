@@ -1,0 +1,90 @@
+.readme-content img {
+    max-width: 100%;
+    height: auto;
+}
+
+.readme-content pre {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 0.25rem;
+    overflow-x: auto;
+}
+
+.readme-content code {
+    color: #d63384;
+}
+
+.readme-content h1,
+.readme-content h2,
+.readme-content h3 {
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.5rem;
+}
+
+/* Enhanced GitHub-style light mode for README */
+.readme-content {
+    color: #333;
+    line-height: 1.6;
+    font-size: 16px;
+}
+
+.readme-content h1,
+.readme-content h2,
+.readme-content h3 {
+    color: #0366d6;
+    border-bottom: 1px solid #eaecef;
+}
+
+.readme-content code {
+    background-color: #f6f8fa;
+    border-radius: 3px;
+    padding: 0.2em 0.4em;
+    font-family: monospace;
+}
+
+.readme-content pre {
+    background-color: #f6f8fa;
+    border-radius: 6px;
+    padding: 16px;
+    overflow: auto;
+    line-height: 1.45;
+}
+
+.readme-content pre code {
+    background-color: transparent;
+    padding: 0;
+}
+
+.readme-content a {
+    color: #0366d6;
+    text-decoration: none;
+}
+
+.readme-content a:hover {
+    text-decoration: underline;
+}
+
+.readme-content blockquote {
+    padding: 0 1em;
+    color: #6a737d;
+    border-left: 0.25em solid #dfe2e5;
+    margin: 0 0 16px 0;
+}
+
+.readme-content table {
+    border-spacing: 0;
+    border-collapse: collapse;
+    margin: 16px 0;
+    width: 100%;
+}
+
+.readme-content table th,
+.readme-content table td {
+    padding: 6px 13px;
+    border: 1px solid #dfe2e5;
+}
+
+.readme-content table tr:nth-child(2n) {
+    background-color: #f6f8fa;
+}
