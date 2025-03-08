@@ -5,6 +5,7 @@ from .forms import ProjectForm, CommentForm
 import requests
 import markdown
 from django.utils.safestring import mark_safe
+from django.contrib import messages
 # Create your views here.
 
 def project_home(request):
@@ -57,12 +58,19 @@ def add_project(request):
     if request.method == 'POST':
         form = ProjectForm(request.POST, request.FILES)
         if form.is_valid():
-            project = form.save(commit=False)
-            project.created_by = request.user
-            project.save()
-            return redirect('projects:project_home')
+            github_link = form.cleaned_data.get('github_link') 
+            if Project.objects.filter(github_link=github_link).exists():
+                messages.error(request, 'A project with this GitHub link already exists!')
+            else:
+                project = form.save(commit=False)
+                project.created_by = request.user
+                project.save()
+
+                messages.success(request, 'Your project has been created!')
+                return redirect('projects:project_home')
     else:
         form = ProjectForm()
+    
     return render(request, 'projects/add_project.html', {'form': form})
 
 # Add a comment
