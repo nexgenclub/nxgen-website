@@ -29,6 +29,7 @@ urlpatterns = [
     path('courses/', include('courses.urls', namespace='courses')),  # Add this line
     path('projects/', include('projects.urls', namespace='projects')),
     path('events/', include('events.urls')),
+    path('', include('core.urls')),
 ]
 
 if settings.DEBUG:

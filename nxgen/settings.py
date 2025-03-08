@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "forums", 
     "courses",  
     "projects",
+    "core",
 ]
 
 # If using crispy forms
@@ -132,9 +133,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = "static/"
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "static"),  # Ensure Django looks for static files
-]
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'

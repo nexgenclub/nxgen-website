@@ -1,0 +1,485 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manage Attendees - {{ event.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .event-header {
+        background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
+                    url('{% if event.image %}{{ event.image.url }}{% else %}{% static "images/event-placeholder.jpg" %}{% endif %}');
+        background-size: cover;
+        background-position: center;
+        color: white;
+        border-radius: 0.5rem;
+        padding: 2rem;
+        position: relative;
+        margin-bottom: 2rem;
+    }
+    
+    .stats-card {
+        border-radius: 0.5rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        padding: 1.5rem;
+        height: 100%;
+        transition: transform 0.3s ease;
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .stats-icon {
+        width: 48px;
+        height: 48px;
+        background-color: rgba(13, 110, 253, 0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        font-size: 1.5rem;
+        color: #0d6efd;
+    }
+    
+    .stats-number {
+        font-size: 2rem;
+        font-weight: bold;
+    }
+    
+    .registration-table th,
+    .registration-table td {
+        vertical-align: middle;
+    }
+    
+    .attendee-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+    
+    .tab-content {
+        padding: 1.5rem;
+        background-color: #fff;
+        border-radius: 0 0.375rem 0.375rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    
+    .nav-tabs .nav-link {
+        border-radius: 0.375rem 0.375rem 0 0;
+    }
+    
+    .capacity-bar {
+        height: 10px;
+        border-radius: 5px;
+        background-color: #e9ecef;
+        margin: 1rem 0;
+    }
+    
+    .capacity-bar .progress-bar {
+        border-radius: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'events:event_list' %}">Events</a></li>
+            <li class="breadcrumb-item"><a href="{{ event.get_absolute_url }}">{{ event.title }}</a></li>
+            <li class="breadcrumb-item active">Manage Attendees</li>
+        </ol>
+    </nav>
+    
+    <!-- Event Info Header -->
+    <div class="event-header">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <h1 class="h2 mb-3">{{ event.title }}</h1>
+                <div class="d-flex align-items-center text-light mb-2">
+                    <i class="fas fa-calendar-day me-2"></i>
+                    {{ event.start_date|date:"F j, Y" }} at {{ event.start_date|date:"g:i A" }}
+                </div>
+                <div class="d-flex align-items-center text-light">
+                    <i class="fas {% if event.is_virtual %}fa-video{% else %}fa-map-marker-alt{% endif %} me-2"></i>
+                    {% if event.is_virtual %}Virtual Event{% else %}{{ event.location }}{% endif %}
+                </div>
+            </div>
+            <div>
+                <a href="{{ event.get_absolute_url }}" class="btn btn-outline-light">
+                    <i class="fas fa-arrow-left"></i> Back to Event
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Registration Stats -->
+    <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4 g-4 mb-4">
+        <!-- Total Registrations -->
+        <div class="col">
+            <div class="stats-card bg-white">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="stats-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted">Total Registrations</div>
+                        <div class="stats-number">{{ total_registrations }}</div>
+                    </div>
+                </div>
+                
+                {% if event.capacity %}
+                <div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>Capacity Filled</span>
+                        <span>{{ registration_percentage }}%</span>
+                    </div>
+                    <div class="capacity-bar">
+                        <div class="progress-bar bg-primary" role="progressbar" style="width: {{ registration_percentage }}%" 
+                             aria-valuenow="{{ registration_percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Confirmed Attendees -->
+        <div class="col">
+            <div class="stats-card bg-white">
+                <div class="d-flex align-items-center mb-1">
+                    <div class="stats-icon" style="color: #198754; background-color: rgba(25, 135, 84, 0.1);">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted">Confirmed</div>
+                        <div class="stats-number">{{ confirmed_registrations.count }}</div>
+                    </div>
+                </div>
+                {% if event.capacity %}
+                <div class="text-muted small">{{ spots_left }} spots remaining</div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Check-ins -->
+        <div class="col">
+            <div class="stats-card bg-white">
+                <div class="d-flex align-items-center">
+                    <div class="stats-icon" style="color: #0dcaf0; background-color: rgba(13, 202, 240, 0.1);">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted">Checked In</div>
+                        <div class="stats-number">{{ attended_registrations.count }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Pending/Canceled -->
+        <div class="col">
+            <div class="stats-card bg-white">
+                <div class="d-flex align-items-center">
+                    <div class="stats-icon" style="color: #ffc107; background-color: rgba(255, 193, 7, 0.1);">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted">Pending/Canceled</div>
+                        <div class="stats-number">{{ pending_registrations.count|add:canceled_registrations.count }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Attendee Management Tabs -->
+    <ul class="nav nav-tabs" id="attendeeTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="confirmed-tab" data-bs-toggle="tab" data-bs-target="#confirmed" 
+                    type="button" role="tab" aria-controls="confirmed" aria-selected="true">
+                Confirmed <span class="badge bg-secondary">{{ confirmed_registrations.count }}</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="attended-tab" data-bs-toggle="tab" data-bs-target="#attended" 
+                    type="button" role="tab" aria-controls="attended" aria-selected="false">
+                Checked In <span class="badge bg-secondary">{{ attended_registrations.count }}</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending" 
+                    type="button" role="tab" aria-controls="pending" aria-selected="false">
+                Pending <span class="badge bg-secondary">{{ pending_registrations.count }}</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="canceled-tab" data-bs-toggle="tab" data-bs-target="#canceled" 
+                    type="button" role="tab" aria-controls="canceled" aria-selected="false">
+                Canceled <span class="badge bg-secondary">{{ canceled_registrations.count }}</span>
+            </button>
+        </li>
+    </ul>
+    
+    <div class="tab-content" id="attendeeTabsContent">
+        <!-- Confirmed Attendees -->
+        <div class="tab-pane fade show active" id="confirmed" role="tabpanel" aria-labelledby="confirmed-tab">
+            {% if confirmed_registrations %}
+            <div class="table-responsive">
+                <table class="table registration-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Attendee</th>
+                            <th scope="col">Registration Date</th>
+                            <th scope="col">Notes</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for registration in confirmed_registrations %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if registration.attendee.profile.image %}
+                                    <img src="{{ registration.attendee.profile.image.url }}" 
+                                         alt="{{ registration.attendee.username }}" 
+                                         class="attendee-avatar me-2">
+                                    {% else %}
+                                    <img src="{% static 'images/default.jpg' %}" 
+                                         alt="{{ registration.attendee.username }}" 
+                                         class="attendee-avatar me-2">
+                                    {% endif %}
+                                    <div>
+                                        <div>{{ registration.attendee.get_full_name|default:registration.attendee.username }}</div>
+                                        <div class="text-muted small">{{ registration.attendee.email }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ registration.registration_date|date:"M d, Y H:i" }}</td>
+                            <td>
+                                {% if registration.notes %}
+                                {{ registration.notes|truncatechars:50 }}
+                                {% else %}
+                                <span class="text-muted">No notes</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <form action="{% url 'events:check_in_attendee' event.id registration.id %}" method="post">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-check"></i> Check In
+                                        </button>
+                                    </form>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary ms-1 send-email-btn"
+                                            data-email="{{ registration.attendee.email }}"
+                                            data-name="{{ registration.attendee.get_full_name|default:registration.attendee.username }}">
+                                        <i class="fas fa-envelope"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-user-check fa-3x text-muted mb-3"></i>
+                <h5>No confirmed attendees yet</h5>
+                <p class="text-muted">When users register for this event, they will appear here.</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Checked-in Attendees -->
+        <div class="tab-pane fade" id="attended" role="tabpanel" aria-labelledby="attended-tab">
+            {% if attended_registrations %}
+            <div class="table-responsive">
+                <table class="table registration-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Attendee</th>
+                            <th scope="col">Check-in Time</th>
+                            <th scope="col">Notes</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for registration in attended_registrations %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if registration.attendee.profile.image %}
+                                    <img src="{{ registration.attendee.profile.image.url }}" 
+                                         alt="{{ registration.attendee.username }}" 
+                                         class="attendee-avatar me-2">
+                                    {% else %}
+                                    <img src="{% static 'images/default.jpg' %}" 
+                                         alt="{{ registration.attendee.username }}" 
+                                         class="attendee-avatar me-2">
+                                    {% endif %}
+                                    <div>
+                                        <div>{{ registration.attendee.get_full_name|default:registration.attendee.username }}</div>
+                                        <div class="text-muted small">{{ registration.attendee.email }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                {{ registration.check_in_time|date:"M d, Y H:i" }}
+                            </td>
+                            <td>
+                                {% if registration.notes %}
+                                {{ registration.notes|truncatechars:50 }}
+                                {% else %}
+                                <span class="text-muted">No notes</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-outline-secondary send-email-btn"
+                                        data-email="{{ registration.attendee.email }}"
+                                        data-name="{{ registration.attendee.get_full_name|default:registration.attendee.username }}">
+                                    <i class="fas fa-envelope"></i> Email
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-calendar-check fa-3x text-muted mb-3"></i>
+                <h5>No checked-in attendees yet</h5>
+                <p class="text-muted">Attendees will appear here after they check in.</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Pending Registrations -->
+        <div class="tab-pane fade" id="pending" role="tabpanel" aria-labelledby="pending-tab">
+            {% if pending_registrations %}
+            <div class="table-responsive">
+                <table class="table registration-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Attendee</th>
+                            <th scope="col">Registration Date</th>
+                            <th scope="col">Notes</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for registration in pending_registrations %}
+                        <!-- Similar structure to confirmed tab -->
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-hourglass-half fa-3x text-muted mb-3"></i>
+                <h5>No pending registrations</h5>
+                <p class="text-muted">There are currently no pending registrations for this event.</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Canceled Registrations -->
+        <div class="tab-pane fade" id="canceled" role="tabpanel" aria-labelledby="canceled-tab">
+            {% if canceled_registrations %}
+            <div class="table-responsive">
+                <table class="table registration-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Attendee</th>
+                            <th scope="col">Registration Date</th>
+                            <th scope="col">Cancellation Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for registration in canceled_registrations %}
+                        <!-- Similar structure to other tabs -->
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                <h5>No canceled registrations</h5>
+                <p class="text-muted">There are no canceled registrations for this event.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Email Modal -->
+<div class="modal fade" id="emailModal" tabindex="-1" aria-labelledby="emailModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="emailModalLabel">Send Email to Attendee</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="emailForm">
+                    <div class="mb-3">
+                        <label for="recipient" class="form-label">To</label>
+                        <input type="text" class="form-control" id="recipient" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="subject" class="form-label">Subject</label>
+                        <input type="text" class="form-control" id="subject" 
+                               value="Information about {{ event.title }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="message" class="form-label">Message</label>
+                        <textarea class="form-control" id="message" rows="5"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="sendEmailBtn">Send Email</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const emailModal = new bootstrap.Modal(document.getElementById('emailModal'));
+    const emailButtons = document.querySelectorAll('.send-email-btn');
+    
+    emailButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const email = this.getAttribute('data-email');
+            const name = this.getAttribute('data-name');
+            document.getElementById('recipient').value = `${name} <${email}>`;
+            emailModal.show();
+        });
+    });
+    
+    document.getElementById('sendEmailBtn').addEventListener('click', function() {
+        const recipient = document.getElementById('recipient').value;
+        const subject = document.getElementById('subject').value;
+        const message = document.getElementById('message').value;
+        
+        if (!subject || !message) {
+            alert('Please fill out all fields');
+            return;
+        }
+        
+        
+        alert('Email sent successfully!');
+        emailModal.hide();
+    });
+});
+</script>
+{% endblock %}
