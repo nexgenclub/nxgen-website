@@ -1,185 +1,340 @@
-<!-- templates/events/event_list.html -->
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Events - NexGen Tech Club{% endblock %}
+{% block title %}Events | NxGen{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'events/css/event-cards.css' %}">
+<style>
+    .event-card {
+        height: 100%;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: none;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+    }
+    
+    .event-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.15);
+    }
+    
+    .event-image {
+        height: 160px;
+        object-fit: cover;
+    }
+    
+    .event-category {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        border-radius: 50px;
+        padding: 0.25rem 0.75rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .event-date {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        margin-bottom: 0.5rem;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+    
+    .upcoming {
+        background-color: rgba(25, 135, 84, 0.1);
+        color: #198754;
+    }
+    
+    .ongoing {
+        background-color: rgba(13, 110, 253, 0.1);
+        color: #0d6efd;
+    }
+    
+    .past {
+        background-color: rgba(108, 117, 125, 0.1);
+        color: #6c757d;
+    }
+    
+    .filter-container {
+        background: #f8f9fa;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .filter-btn.active {
+        background-color: #0d6efd;
+        color: white;
+        border-color: #0d6efd;
+    }
+
+    .calendar-container {
+        height: 600px;
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        margin-bottom: 2rem;
+    }
+    
+    .capacity-bar {
+        height: 6px;
+        margin-bottom: 8px;
+        border-radius: 3px;
+        background-color: #e9ecef;
+    }
+    
+    .capacity-bar .progress-bar {
+        border-radius: 3px;
+    }
+    
+    .capacity-text {
+        font-size: 0.75rem;
+        color: #6c757d;
+    }
+</style>
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.0/main.min.css" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h1 class="mb-3">NexGen Tech Events</h1>
-            <p class="lead">Join us for workshops, talks, hackathons, and more!</p>
-        </div>
-        <li class="nav-item">
-            <a style="color:black;" class="btn btn-outline-light me-2" href="{% url 'events:event_create' %}">
-                <i class="fas fa-plus-circle"></i> Create Event
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2">Events</h1>
+        <div>
+            <button class="btn btn-outline-secondary me-2" id="toggleView" data-view="grid">
+                <i class="fas fa-calendar-alt"></i> Calendar View
+            </button>
+            {% if user.is_authenticated %}
+            <a href="{% url 'events:event_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Create Event
             </a>
-        </li>
-       
-    </div>
-
-    <!-- Filters -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            <form method="get" class="row g-3">
-                <div class="col-md-4">
-                    <label for="type" class="form-label">Event Type</label>
-                    <select name="type" id="type" class="form-select">
-                        <option value="upcoming" {% if request.GET.type == 'upcoming' %}selected{% endif %}>Upcoming</option>
-                        <option value="ongoing" {% if request.GET.type == 'ongoing' %}selected{% endif %}>Ongoing</option>
-                        <option value="past" {% if request.GET.type == 'past' %}selected{% endif %}>Past</option>
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <label for="category" class="form-label">Category</label>
-                    <select name="category" id="category" class="form-select">
-                        <option value="">All Categories</option>
-                        {% for category in categories %}
-                            <option value="{{ category.slug }}" {% if request.GET.category == category.slug %}selected{% endif %}>
-                                {{ category.name }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <label for="search" class="form-label">Search</label>
-                    <div class="input-group">
-                        <input type="text" class="form-control" id="search" name="search" 
-                               placeholder="Search events..." value="{{ request.GET.search|default:'' }}">
-                        <button class="btn btn-primary" type="submit">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div>
-                </div>
-            </form>
+            {% endif %}
         </div>
     </div>
 
-    <!-- Events Grid -->
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-        {% for event in events %}
-            <div class="col">
-                <div class="card h-100 event-card {% if event.is_upcoming %}border-primary{% elif event.is_ongoing %}border-success{% else %}border-secondary{% endif %}">
-                    {% if event.image %}
-                        <img src="{{ event.image.url }}" class="card-img-top" alt="{{ event.title }}">
-                    {% else %}
-                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 160px;">
-                            <i class="fas fa-calendar-alt fa-4x text-muted"></i>
-                        </div>
+    <!-- Filter Section -->
+    <div class="filter-container">
+        <div class="row g-3">
+            <div class="col-md-8">
+                <div class="btn-group" role="group">
+                    <a href="{% url 'events:event_list' %}?type=upcoming{% if current_category %}&category={{ current_category }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}" 
+                       class="btn btn-outline-primary filter-btn {% if current_type == 'upcoming' %}active{% endif %}">
+                        Upcoming <span class="badge bg-secondary">{{ upcoming_count }}</span>
+                    </a>
+                    <a href="{% url 'events:event_list' %}?type=ongoing{% if current_category %}&category={{ current_category }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}" 
+                       class="btn btn-outline-primary filter-btn {% if current_type == 'ongoing' %}active{% endif %}">
+                        Ongoing <span class="badge bg-secondary">{{ ongoing_count }}</span>
+                    </a>
+                    <a href="{% url 'events:event_list' %}?type=past{% if current_category %}&category={{ current_category }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}" 
+                       class="btn btn-outline-primary filter-btn {% if current_type == 'past' %}active{% endif %}">
+                        Past <span class="badge bg-secondary">{{ past_count }}</span>
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <form method="get" action="{% url 'events:event_list' %}" class="d-flex">
+                    <input type="hidden" name="type" value="{{ current_type }}">
+                    {% if current_category %}
+                    <input type="hidden" name="category" value="{{ current_category }}">
                     {% endif %}
-                    
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div>
-                                {% for category in event.categories.all %}
-                                    <span class="badge bg-info me-1">{{ category.name }}</span>
-                                {% endfor %}
-                            </div>
-                            <div>
-                                {% if event.is_upcoming %}
-                                    <span class="badge bg-primary">Upcoming</span>
-                                {% elif event.is_ongoing %}
-                                    <span class="badge bg-success">Ongoing</span>
-                                {% else %}
-                                    <span class="badge bg-secondary">Past</span>
-                                {% endif %}
-                            </div>
-                        </div>
+                    <input type="text" class="form-control me-2" name="search" placeholder="Search events..." value="{{ search_query }}">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </form>
+            </div>
+            
+            <div class="col-12">
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="{% url 'events:event_list' %}?type={{ current_type }}{% if search_query %}&search={{ search_query }}{% endif %}" 
+                       class="btn btn-sm {% if not current_category %}btn-secondary{% else %}btn-outline-secondary{% endif %}">
+                        All Categories
+                    </a>
+                    {% for category in categories %}
+                    <a href="{% url 'events:event_list' %}?type={{ current_type }}&category={{ category.slug }}{% if search_query %}&search={{ search_query }}{% endif %}" 
+                       class="btn btn-sm {% if current_category == category.slug %}btn-secondary{% else %}btn-outline-secondary{% endif %}">
+                        {{ category.name }}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Calendar View (initially hidden) -->
+    <div id="calendarView" class="calendar-container mb-4" style="display: none;">
+        <div id="calendar"></div>
+    </div>
+
+    <!-- Grid View -->
+    <div id="gridView">
+        {% if events %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-4">
+            {% for event in events %}
+            <div class="col">
+                <div class="card event-card h-100">
+                    <div class="position-relative">
+                        {% if event.image %}
+                        <img src="{{ event.image.url }}" class="card-img-top event-image" alt="{{ event.title }}">
+                        {% else %}
+                        <img src="{% static 'images/event-placeholder.jpg' %}" class="card-img-top event-image" alt="{{ event.title }}">
+                        {% endif %}
+                        
+                        {% if event.categories.first %}
+                        <span class="event-category bg-primary bg-opacity-75 text-white">
+                            {{ event.categories.first.name }}
+                        </span>
+                        {% endif %}
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        {% if event.is_upcoming %}
+                        <span class="event-date upcoming">
+                            <i class="fas fa-calendar-alt"></i> {{ event.start_date|date:"M d, Y" }}
+                        </span>
+                        {% elif event.is_ongoing %}
+                        <span class="event-date ongoing">
+                            <i class="fas fa-calendar-check"></i> Happening now
+                        </span>
+                        {% else %}
+                        <span class="event-date past">
+                            <i class="fas fa-calendar-times"></i> Ended {{ event.end_date|date:"M d, Y" }}
+                        </span>
+                        {% endif %}
                         
                         <h5 class="card-title">{{ event.title }}</h5>
-                        <p class="card-text">{{ event.short_description|default:event.description|truncatechars:100 }}</p>
-                    </div>
-                    
-                    <div class="card-footer bg-transparent">
-                        <div class="small text-muted mb-2">
-                            <i class="far fa-calendar-alt"></i> 
-                            {{ event.start_date|date:"F j, Y" }} at {{ event.start_date|date:"g:i A" }}
+                        <p class="card-text text-muted small mb-2">
+                            <i class="fas {% if event.is_virtual %}fa-video{% else %}fa-map-marker-alt{% endif %} me-1"></i>
+                            {% if event.is_virtual %}Virtual Event{% else %}{{ event.location }}{% endif %}
+                        </p>
+                        <p class="card-text mb-3">{{ event.short_description|default:event.description|truncatechars:100 }}</p>
+                        
+                        {% if event.capacity %}
+                        <div class="mt-auto mb-2">
+                            <div class="capacity-bar">
+                                <div class="progress-bar bg-{{ event.is_full|yesno:'danger,success' }}" 
+                                     role="progressbar" 
+                                     style="width: {{ event.registration_percentage }}%">
+                                </div>
+                            </div>
+                            <p class="capacity-text mb-0">
+                                {% if event.is_full %}
+                                <span class="text-danger fw-bold">Fully booked</span>
+                                {% else %}
+                                {{ event.spots_left }} spots left
+                                {% endif %}
+                            </p>
                         </div>
-                        <div class="small text-muted mb-3">
-                            <i class="fas fa-map-marker-alt"></i> 
-                            {% if event.is_virtual %}
-                                Virtual Event
-                            {% else %}
-                                {{ event.location }}
-                            {% endif %}
-                        </div>
-                        <a href="{{ event.get_absolute_url }}" class="btn btn-sm btn-outline-primary w-100">View Details</a>
+                        {% endif %}
+                        
+                        <a href="{{ event.get_absolute_url }}" class="btn btn-outline-primary mt-auto">View Details</a>
                     </div>
                 </div>
             </div>
-        {% empty %}
-            <div class="col-12">
-                <div class="alert alert-info">
-                    <i class="far fa-calendar-times me-2"></i> No events found matching your criteria.
-                </div>
-            </div>
-        {% endfor %}
-    </div>
-
-    <!-- Pagination -->
-    {% if is_paginated %}
-        <nav aria-label="Page navigation" class="mt-4">
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <nav aria-label="Page navigation">
             <ul class="pagination justify-content-center">
                 {% if page_obj.has_previous %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
-                            First
-                        </a>
-                    </li>
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
-                            Previous
-                        </a>
-                    </li>
-                {% else %}
-                    <li class="page-item disabled">
-                        <a class="page-link" href="#">First</a>
-                    </li>
-                    <li class="page-item disabled">
-                        <a class="page-link" href="#">Previous</a>
-                    </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% if current_type %}&type={{ current_type }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">First</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if current_type %}&type={{ current_type }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">Previous</a>
+                </li>
                 {% endif %}
-
+                
                 {% for num in page_obj.paginator.page_range %}
                     {% if page_obj.number == num %}
-                        <li class="page-item active">
-                            <a class="page-link" href="#">{{ num }}</a>
-                        </li>
+                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
                     {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
-                                {{ num }}
-                            </a>
-                        </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% if current_type %}&type={{ current_type }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">{{ num }}</a>
+                    </li>
                     {% endif %}
                 {% endfor %}
-
+                
                 {% if page_obj.has_next %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
-                            Next
-                        </a>
-                    </li>
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
-                            Last
-                        </a>
-                    </li>
-                {% else %}
-                    <li class="page-item disabled">
-                        <a class="page-link" href="#">Next</a>
-                    </li>
-                    <li class="page-item disabled">
-                        <a class="page-link" href="#">Last</a>
-                    </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if current_type %}&type={{ current_type }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">Next</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if current_type %}&type={{ current_type }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">Last</a>
+                </li>
                 {% endif %}
             </ul>
         </nav>
-    {% endif %}
+        {% endif %}
+        
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
+            <h3>No events found</h3>
+            <p class="text-muted">
+                {% if search_query %}
+                No events match your search criteria "{{ search_query }}"
+                {% elif current_category %}
+                No {{ current_type }} events in this category
+                {% else %}
+                No {{ current_type }} events available
+                {% endif %}
+            </p>
+            <a href="{% url 'events:event_list' %}" class="btn btn-primary mt-3">View All Events</a>
+            {% if user.is_authenticated %}
+            <a href="{% url 'events:event_create' %}" class="btn btn-outline-primary mt-3">Create Event</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.0/main.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleViewBtn = document.getElementById('toggleView');
+        const calendarView = document.getElementById('calendarView');
+        const gridView = document.getElementById('gridView');
+        
+        const calendarEl = document.getElementById('calendar');
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,listWeek'
+            },
+            events: "{% url 'events:calendar_data' %}",
+            eventClick: function(info) {
+                window.location.href = info.event.url;
+            },
+            eventTimeFormat: {
+                hour: '2-digit',
+                minute: '2-digit',
+                meridiem: 'short'
+            },
+            height: '100%'
+        });
+        
+        toggleViewBtn.addEventListener('click', function() {
+            const currentView = toggleViewBtn.getAttribute('data-view');
+            
+            if (currentView === 'grid') {
+                gridView.style.display = 'none';
+                calendarView.style.display = 'block';
+                toggleViewBtn.innerHTML = '<i class="fas fa-th"></i> Grid View';
+                toggleViewBtn.setAttribute('data-view', 'calendar');
+                calendar.render();
+            } else {
+                calendarView.style.display = 'none';
+                gridView.style.display = 'block';
+                toggleViewBtn.innerHTML = '<i class="fas fa-calendar-alt"></i> Calendar View';
+                toggleViewBtn.setAttribute('data-view', 'grid');
+            }
+        });
+    });
+</script>
 {% endblock %}
