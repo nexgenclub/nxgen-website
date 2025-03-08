@@ -322,7 +322,9 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'projects:project_home' %}">Projects</a>
                     </li>
-                    <!-- Add more navigation items as needed -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'events:event_list' %}">Events</a>
+                    </li>
                 </ul>
                 <ul class="navbar-nav">
                     {% if user.is_authenticated %}
@@ -370,16 +372,35 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-dark text-white py-4">
+     <!-- Footer -->
+     <footer class="bg-dark text-light py-4 mt-5">
         <div class="container">
             <div class="row">
                 <div class="col-md-6">
-                    <h5>NxGen Platform</h5>
-                    <p>Your next generation platform for innovation</p>
+                    <h5>NexGen Tech Club</h5>
+                    <p>Empowering students through technology and innovation.</p>
                 </div>
-                <div class="col-md-6 text-md-end">
-                    <p>&copy; {% now "Y" %} NxGen. All rights reserved.</p>
+                <div class="col-md-3">
+                    <h5>Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-light">About Us</a></li>
+                        <li><a href="#" class="text-light">Contact</a></li>
+                        <li><a href="{% url 'events:event_list' %}" class="text-light">Events</a></li>
+                    </ul>
                 </div>
+                <div class="col-md-3">
+                    <h5>Follow Us</h5>
+                    <div class="social-links">
+                        <a href="#" class="text-light me-2"><i class="fab fa-instagram fa-lg"></i></a>
+                        <a href="#" class="text-light me-2"><i class="fab fa-twitter fa-lg"></i></a>
+                        <a href="#" class="text-light me-2"><i class="fab fa-github fa-lg"></i></a>
+                        <a href="#" class="text-light"><i class="fab fa-discord fa-lg"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-3">
+            <div class="text-center">
+                <p class="mb-0">&copy; {% now "Y" %} NexGen Tech Club. All rights reserved.</p>
             </div>
         </div>
     </footer>

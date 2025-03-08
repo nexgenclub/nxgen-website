@@ -1,0 +1,322 @@
+<!-- templates/events/event_detail.html -->
+{% extends "base.html" %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}{{ event.title }} - NexGen Tech Club{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Event Details -->
+            <div class="card shadow-sm mb-4">
+                {% if event.image %}
+                    <img src="{{ event.image.url }}" class="card-img-top" alt="{{ event.title }}">
+                {% endif %}
+                
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            {% for category in event.categories.all %}
+                                <span class="badge bg-info me-1">{{ category.name }}</span>
+                            {% endfor %}
+                        </div>
+                        <div>
+                            {% if event.is_upcoming %}
+                                <span class="badge bg-primary">Upcoming</span>
+                            {% elif event.is_ongoing %}
+                                <span class="badge bg-success">Ongoing</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Past</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <h1 class="card-title mb-3">{{ event.title }}</h1>
+                    
+                    <div class="event-details mb-4">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center">
+                                    <div class="icon-wrapper me-3">
+                                        <i class="far fa-calendar-alt fa-2x text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Date & Time</h6>
+                                        <p class="mb-0">
+                                            {{ event.start_date|date:"F j, Y" }}<br>
+                                            {{ event.start_date|date:"g:i A" }} - {{ event.end_date|date:"g:i A" }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center">
+                                    <div class="icon-wrapper me-3">
+                                        <i class="fas fa-map-marker-alt fa-2x text-danger"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Location</h6>
+                                        <p class="mb-0">
+                                            {% if event.is_virtual %}
+                                                Virtual Event
+                                                {% if event.virtual_link and event.is_upcoming or event.is_ongoing %}
+                                                    <br><a href="{{ event.virtual_link }}" target="_blank">Join Link</a>
+                                                {% endif %}
+                                            {% else %}
+                                                {{ event.location }}
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {% if event.registration_deadline %}
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center">
+                                        <div class="icon-wrapper me-3">
+                                            <i class="far fa-clock fa-2x text-warning"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0">Registration Deadline</h6>
+                                            <p class="mb-0">
+                                                {{ event.registration_deadline|date:"F j, Y" }} at {{ event.registration_deadline|date:"g:i A" }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            
+                            {% if event.capacity %}
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center">
+                                        <div class="icon-wrapper me-3">
+                                            <i class="fas fa-users fa-2x text-success"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0">Capacity</h6>
+                                            <p class="mb-0">
+                                                {{ event.registrations.count }} / {{ event.capacity }} registered
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="event-description">
+                        <h4 class="mb-3">About this Event</h4>
+                        <div class="description-content">
+                            {{ event.description|linebreaks }}
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="event-organizers">
+                        <h4 class="mb-3">Organizers</h4>
+                        <div class="d-flex flex-wrap">
+                            {% for organizer in event.organizers.all %}
+                                <div class="organizer-card me-3 mb-3">
+                                    <div class="avatar">
+                                        <img src="{% static 'events/img/default-avatar.png' %}" alt="{{ organizer.username }}">
+                                    </div>
+                                    <div class="name mt-2">{{ organizer.get_full_name|default:organizer.username }}</div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- Registration Card -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Registration</h5>
+                </div>
+                <div class="card-body">
+                    {% if event.is_past %}
+                        <div class="alert alert-secondary">
+                            <i class="fas fa-info-circle me-2"></i> This event has ended.
+                        </div>
+                    {% elif not event.registration_open %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i> Registration is closed for this event.
+                        </div>
+                    {% elif event.capacity and event.registrations.count >= event.capacity %}
+                        <div class="alert alert-danger">
+                            <i class="fas fa-times-circle me-2"></i> This event has reached maximum capacity.
+                        </div>
+                    {% elif user.is_authenticated %}
+                        {% if is_registered %}
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle me-2"></i> You are registered for this event.
+                            </div>
+                            <form method="post" action="{% url 'events:event_unregister' event.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger w-100">
+                                    <i class="fas fa-times-circle me-1"></i> Unregister
+                                </button>
+                            </form>
+                        {% else %}
+                            <form method="post" action="{% url 'events:event_register' event.id %}">
+                                {% csrf_token %}
+                                <p>Join us for this exciting event! Click below to secure your spot.</p>
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-ticket-alt me-1"></i> Register Now
+                                </button>
+                            </form>
+                        {% endif %}
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i> Please <a href="{% url 'login' %}?next={{ request.path }}">log in</a> to register for this event.
+                        </div>
+                    {% endif %}
+                    
+                    <div class="registration-info mt-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Registration Status:</span>
+                            <span class="fw-bold {% if event.registration_open %}text-success{% else %}text-danger{% endif %}">
+                                {% if event.registration_open %}Open{% else %}Closed{% endif %}
+                            </span>
+                        </div>
+                        
+                        {% if event.capacity %}
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Available Spots:</span>
+                                <span class="fw-bold">{{ event.spots_left }} of {{ event.capacity }}</span>
+                            </div>
+                            <div class="progress mb-3">
+                                <div class="progress-bar bg-success" role="progressbar"
+                                    style="width: {{ event.registration_percentage }}%"
+                                    aria-valuenow="{{ event.registrations.count }}" aria-valuemin="0" aria-valuemax="{{ event.capacity }}">
+                                    {{ event.registration_percentage|floatformat:0 }}%
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Share Event Card -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">Share Event</h5>
+                </div>
+                <div class="card-body">
+                    <p>Spread the word about this event:</p>
+                    <div class="d-flex">
+                        <a href="https://twitter.com/intent/tweet?text={{ event.title|urlencode }}&url={{ request.build_absolute_uri }}" 
+                           class="btn btn-outline-primary me-2" target="_blank">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri|urlencode }}" 
+                           class="btn btn-outline-primary me-2" target="_blank">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ request.build_absolute_uri|urlencode }}" 
+                           class="btn btn-outline-primary me-2" target="_blank">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                        <button class="btn btn-outline-primary me-2" 
+                                onclick="navigator.clipboard.writeText('{{ request.build_absolute_uri }}'); showNotification('Link copied to clipboard!');">
+                            <i class="fas fa-link"></i>
+                        </button>
+                        <a href="https://calendar.google.com/calendar/r/eventedit?text={{ event.title|urlencode }}&dates={{ event.start_date|date:"Ymd\\THis" }}/{{ event.end_date|date:"Ymd\\THis" }}&details={{ event.description|urlencode }}&location={{ event.location|urlencode }}&sf=true&output=xml"
+                           class="btn btn-outline-primary me-2" target="_blank">
+                            <i class="fas fa-calendar-plus"></i> Add to Google Calendar
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Related Events Card (if any) -->
+            {% with similar_events=event.get_similar_events %}
+                {% if similar_events %}
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-secondary text-white">
+                            <h5 class="card-title mb-0">Similar Events</h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <ul class="list-group list-group-flush">
+                                {% for similar in similar_events %}
+                                    <li class="list-group-item">
+                                        <div class="d-flex align-items-center">
+                                            {% if similar.image %}
+                                                <img src="{{ similar.image.url }}" alt="{{ similar.title }}" class="related-event-img me-3">
+                                            {% else %}
+                                                <div class="related-event-img bg-light d-flex align-items-center justify-content-center me-3">
+                                                    <i class="fas fa-calendar-alt text-muted"></i>
+                                                </div>
+                                            {% endif %}
+                                            <div>
+                                                <h6 class="mb-1">{{ similar.title }}</h6>
+                                                <small class="text-muted">{{ similar.start_date|date:"M j, Y" }}</small>
+                                                <br>
+                                                <a href="{{ similar.get_absolute_url }}" class="btn btn-sm btn-outline-primary mt-2">View</a>
+                                            </div>
+                                        </div>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endwith %}
+        </div>
+    </div>
+</div>
+
+<!-- GitHub-style notification -->
+<div id="notification" class="notification" style="display:none;">
+    <span id="notification-message"></span>
+    <button onclick="hideNotification()">x</button>
+</div>
+
+<script>
+function showNotification(message) {
+    const notification = document.getElementById('notification');
+    const notificationMessage = document.getElementById('notification-message');
+    notificationMessage.textContent = message;
+    notification.style.display = 'block';
+    setTimeout(hideNotification, 3000);
+}
+
+function hideNotification() {
+    const notification = document.getElementById('notification');
+    notification.style.display = 'none';
+}
+</script>
+
+<style>
+.notification {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background-color: #28a745;
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 1000;
+}
+
+.notification button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+}
+</style>
+{% endblock %}

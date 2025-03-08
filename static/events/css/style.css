@@ -1,0 +1,249 @@
+/* static/events/css/style.css */
+:root {
+    --primary-color: #3498db;
+    --secondary-color: #2c3e50;
+    --success-color: #2ecc71;
+    --danger-color: #e74c3c;
+    --warning-color: #f39c12;
+    --info-color: #1abc9c;
+    --light-color: #ecf0f1;
+    --dark-color: #2c3e50;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f8f9fa;
+    color: #333;
+}
+
+/* Navbar Customization */
+.navbar-brand {
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+/* Card Customizations */
+.card {
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.card-img-top {
+    height: 180px;
+    object-fit: cover;
+}
+
+/* Button Styles */
+.btn {
+    border-radius: 4px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: #2980b9;
+    border-color: #2980b9;
+}
+
+/* Footer Customization */
+footer {
+    background-color: var(--dark-color);
+}
+
+.social-links a {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.1);
+    transition: background-color 0.3s ease;
+}
+
+.social-links a:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Icon Wrapper */
+.icon-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: rgba(52, 152, 219, 0.1);
+}
+
+/* Organizer Cards */
+.organizer-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 80px;
+}
+
+.organizer-card .avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    overflow: hidden;
+    background-color: #f1f1f1;
+}
+
+.organizer-card .avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.organizer-card .name {
+    font-size: 0.8rem;
+    text-align: center;
+}
+
+/* Related Events */
+.related-event-img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+/* Custom Form Styles */
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(52, 152, 219, 0.25);
+}
+
+/* Select2 Customization */
+.select2-container--bootstrap-5 .select2-selection {
+    padding: 0.375rem 0.75rem;
+    height: auto;
+    min-height: calc(1.5em + 0.75rem + 2px);
+}
+
+/* Event Status Badges */
+.badge.bg-primary {
+    background-color: var(--primary-color) !important;
+}
+
+.badge.bg-success {
+    background-color: var(--success-color) !important;
+}
+
+.badge.bg-secondary {
+    background-color: var(--secondary-color) !important;
+}
+
+.badge.bg-info {
+    background-color: var(--info-color) !important;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+/* Responsiveness */
+@media (max-width: 768px) {
+    .card-title {
+        font-size: 1.1rem;
+    }
+    
+    .event-details .row {
+        row-gap: 1.5rem;
+    }
+}
+
+
+/* static/events/css/event-cards.css */
+.event-card {
+    height: 100%;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-width: 1px;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.event-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.event-card .card-img-top {
+    height: 160px;
+    object-fit: cover;
+}
+
+.event-card .card-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.event-card .card-text {
+    flex-grow: 1;
+    color: #6c757d;
+}
+
+.event-card .badge {
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+}
+
+.event-card .card-footer {
+    border-top: none;
+    background-color: transparent;
+    padding-top: 0;
+}
+
+.event-card.border-primary {
+    border-color: var(--primary-color) !important;
+}
+
+.event-card.border-success {
+    border-color: var(--success-color) !important;
+}
+
+.event-card.border-secondary {
+    border-color: var(--secondary-color) !important;
+}
+
+/* Card animations */
+.event-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.event-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(to right, var(--primary-color), var(--info-color));
+    transform: translateX(-100%);
+    transition: transform 0.5s ease;
+}
+
+.event-card:hover::before {
+    transform: translateX(0);
+}
