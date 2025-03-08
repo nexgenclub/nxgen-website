@@ -8,8 +8,11 @@ from django.urls import reverse_lazy
 from django.utils import timezone
 from django.db.models import Q, Count, Prefetch
 from django.contrib import messages
-from django.http import JsonResponse, Http404
+from django.http import JsonResponse, Http404, HttpResponse
 import logging
+from icalendar import Calendar, Event as ICalEvent
+import vobject
+import icalendar
 
 logger = logging.getLogger(__name__)
 
@@ -356,14 +359,50 @@ def check_in_attendee(request, event_id, registration_id):
     return redirect('events:manage_attendees', pk=event_id)
 
 
+# class EventCreateView(LoginRequiredMixin, CreateView):
+#     model = Event
+#     form_class = EventForm
+#     template_name = 'events/event_form.html'
+    
+#     def form_valid(self, form):
+#         # Set initial status to draft
+#         form.instance.status = 'draft'
+        
+#         # Save the form to get an instance with ID
+#         response = super().form_valid(form)
+        
+#         # Add the current user as an organizer
+#         form.instance.organizers.add(self.request.user)
+        
+#         # Log successful creation
+#         logger.info(f"Event created: {form.instance.title} (ID: {form.instance.id}, slug: {form.instance.slug})")
+        
+#         messages.success(self.request, "Event created successfully! It will be published after review.")
+#         return response
+    
+#     def get_success_url(self):
+#         return self.object.get_absolute_url()
+
 class EventCreateView(LoginRequiredMixin, CreateView):
     model = Event
     form_class = EventForm
     template_name = 'events/event_form.html'
     
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        
+        # Check if categories exist, create some if not
+        if EventCategory.objects.count() == 0:
+            EventCategory.objects.create(name="Workshop", slug="workshop", description="Hands-on learning sessions")
+            EventCategory.objects.create(name="Conference", slug="conference", description="Large formal gathering")
+            EventCategory.objects.create(name="Webinar", slug="webinar", description="Online educational event")
+        
+        return form
+
     def form_valid(self, form):
-        # Set initial status to draft
-        form.instance.status = 'draft'
+        # Only set status to draft if not specified by the user
+        if not form.instance.status:
+            form.instance.status = 'draft'
         
         # Save the form to get an instance with ID
         response = super().form_valid(form)
@@ -374,7 +413,11 @@ class EventCreateView(LoginRequiredMixin, CreateView):
         # Log successful creation
         logger.info(f"Event created: {form.instance.title} (ID: {form.instance.id}, slug: {form.instance.slug})")
         
-        messages.success(self.request, "Event created successfully! It will be published after review.")
+        if form.instance.status == 'published':
+            messages.success(self.request, "Event published successfully!")
+        else:
+            messages.success(self.request, "Event created successfully! It will be published after review.")
+            
         return response
     
     def get_success_url(self):
@@ -402,3 +445,58 @@ class EventUpdateView(LoginRequiredMixin, UpdateView):
     
     def get_success_url(self):
         return self.object.get_absolute_url()
+
+
+def apple_calendar_event(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+    cal = Calendar()
+    cal_event = ICalEvent()
+    cal_event.add('summary', event.title)
+    cal_event.add('dtstart', event.start_date)
+    cal_event.add('dtend', event.end_date)
+    cal_event.add('description', event.description)
+    cal_event.add('location', event.location)
+    cal.add_component(cal_event)
+    
+    response = HttpResponse(cal.to_ical(), content_type='text/calendar')
+    response['Content-Disposition'] = f'attachment; filename="{event.title}.ics"'
+    return response
+
+def outlook_calendar_event(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+    
+    from icalendar import Calendar, Event as ICalEvent
+    from datetime import datetime
+    import uuid
+    
+    # Create calendar
+    cal = Calendar()
+    cal.add('prodid', '-//Your Organization//Event Calendar//EN')
+    cal.add('version', '2.0')
+    
+    # Create event
+    ical_event = ICalEvent()
+    
+    # Add event properties
+    ical_event.add('summary', event.title)
+    ical_event.add('description', event.description)
+    ical_event.add('location', event.location)
+    
+    # Add start and end times
+    ical_event.add('dtstart', event.start_date)
+    ical_event.add('dtend', event.end_date)
+    
+    # Add creation time
+    ical_event.add('dtstamp', datetime.utcnow())
+    
+    # Add UID
+    ical_event.add('uid', str(uuid.uuid4()))
+    
+    # Add event to calendar
+    cal.add_component(ical_event)
+    
+    # Create response
+    response = HttpResponse(cal.to_ical(), content_type='text/calendar')
+    response['Content-Disposition'] = f'attachment; filename="{event.title}.ics"'
+    
+    return response

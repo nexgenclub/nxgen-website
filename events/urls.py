@@ -17,6 +17,8 @@ urlpatterns = [
     
     # Calendar data
     path('calendar-data/', views.calendar_events_json, name='calendar_data'),
+    path('calendar/apple/<int:event_id>/', views.apple_calendar_event, name='apple_calendar_event'),
+    path('calendar/outlook/<int:event_id>/', views.outlook_calendar_event, name='outlook_calendar_event'),
     
     # This should be last to avoid conflicts with other URL patterns
     path('<slug:slug>/', views.EventDetailView.as_view(), name='event_detail'),

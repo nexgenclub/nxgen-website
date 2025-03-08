@@ -274,6 +274,15 @@
                         {% endif %}
                         <div class="form-text">Leave empty for unlimited capacity.</div>
                     </div>
+                    <!-- Event Status -->
+<div class="mb-4">
+    {{ form.status.label_tag }}
+    {{ form.status }}
+    {% if form.status.errors %}
+        <div class="invalid-feedback d-block">{{ form.status.errors }}</div>
+    {% endif %}
+    <div class="form-text">Select 'Published' to make this event visible immediately.</div>
+</div>
                     
                     <!-- Event Image -->
                     <div class="mb-4">
@@ -329,7 +338,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.9/flatpickr.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    $('.select2').select2({
+    $('#id_categories_select2').select2({
         placeholder: "Select categories",
         width: '100%'
     });

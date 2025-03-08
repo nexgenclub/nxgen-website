@@ -5,7 +5,10 @@ from .models import Event, Registration, EventCategory
 class EventForm(forms.ModelForm):
     categories = forms.ModelMultipleChoiceField(
         queryset=EventCategory.objects.all(),
-        widget=forms.SelectMultiple(attrs={'class': 'form-select'}),
+        widget=forms.SelectMultiple(attrs={
+            'class': 'form-select select2',
+            'id': 'id_categories_select2'
+        }),
         required=False
     )
     
@@ -15,7 +18,7 @@ class EventForm(forms.ModelForm):
             'title', 'description', 'short_description', 
             'start_date', 'end_date', 'registration_deadline', 
             'location', 'is_virtual', 'virtual_link', 
-            'image', 'capacity', 'categories'
+            'image', 'capacity', 'categories', 'status'
         ]
         # Remove 'status' from fields list for non-admin users
         
