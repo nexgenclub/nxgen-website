@@ -5,10 +5,16 @@ charset-normalizer==3.4.1
 crispy-bootstrap5==2024.10
 Django==5.1.7
 django-crispy-forms==2.3
+icalendar==6.1.1
 idna==3.10
 Markdown==3.7
 pillow==11.1.0
+python-dateutil==2.9.0.post0
+pytz==2025.1
 requests==2.32.3
+six==1.17.0
 sqlparse==0.5.3
+tzdata==2025.1
 urllib3==2.3.0
+vobject==0.9.9
 webencodings==0.5.1
