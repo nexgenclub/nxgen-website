@@ -5,7 +5,7 @@ from .models import Event, Registration, EventCategory
 class EventForm(forms.ModelForm):
     categories = forms.ModelMultipleChoiceField(
         queryset=EventCategory.objects.all(),
-        widget=forms.SelectMultiple(attrs={'class': 'form-select select2'}),
+        widget=forms.SelectMultiple(attrs={'class': 'form-select'}),
         required=False
     )
     
