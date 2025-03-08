@@ -12,7 +12,7 @@
             <!-- Event Details -->
             <div class="card shadow-sm mb-4">
                 {% if event.image %}
-                    <img src="{{ event.image.url }}" class="card-img-top" alt="{{ event.title }}">
+                    <img src="{{ event.image.url }}" class="card-img-top" alt="{{ event.title }}" style="max-height: 300px; object-fit: cover;">
                 {% endif %}
                 
                 <div class="card-body">
