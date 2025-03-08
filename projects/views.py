@@ -11,8 +11,29 @@ from django.contrib import messages
 
 
 def project_home(request):
-    projects = Project.objects.all().order_by("-created_at")
-    return render(request, "projects/project_home.html", {"projects": projects})
+    search_query = request.GET.get('search', '')
+    tech_filter = request.GET.get('tech_filter', '')
+
+    projects = Project.objects.all()
+
+    # Filtering by search query
+    if search_query:
+        projects = projects.filter(title__icontains=search_query)
+
+    # Filtering by tech stack
+    if tech_filter:
+        projects = [p for p in projects if tech_filter in p.tech_stack.split(",")]
+
+    # Get unique tech choices
+    all_techs = set()
+    for project in Project.objects.all():
+        all_techs.update(project.tech_stack.split(","))
+
+    return render(request, 'projects/project_home.html', {
+        'projects': projects,
+        'tech_choices': sorted(all_techs),
+    })
+
 
 
 # Fetch README
