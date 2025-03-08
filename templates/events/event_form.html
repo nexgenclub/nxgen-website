@@ -1,0 +1,271 @@
+<!-- filepath: /home/ncognto/Downloads/WEBSITE/nxgen-website/templates/events/event_form.html -->
+{% extends "base.html" %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}{% if form.instance.id %}Edit{% else %}Create{% endif %} Event - NexGen Tech Club{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2-bootstrap-5-theme/1.3.0/select2-bootstrap-5-theme.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="card-title mb-0">
+                        {% if form.instance.id %}
+                            <i class="fas fa-edit me-2"></i> Edit Event
+                        {% else %}
+                            <i class="fas fa-plus-circle me-2"></i> Create New Event
+                        {% endif %}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="row g-3">
+                            <!-- Basic Information -->
+                            <div class="col-12">
+                                <h5>Basic Information</h5>
+                                <hr>
+                            </div>
+                            
+                            <div class="col-12">
+                                <label for="{{ form.title.id_for_label }}" class="form-label">Event Title *</label>
+                                {{ form.title|add_class:"form-control" }}
+                                {% if form.title.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.title.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-12">
+                                <label for="{{ form.short_description.id_for_label }}" class="form-label">Short Description</label>
+                                {{ form.short_description|add_class:"form-control" }}
+                                <small class="text-muted">A brief summary (250 characters max)</small>
+                                {% if form.short_description.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.short_description.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-12">
+                                <label for="{{ form.description.id_for_label }}" class="form-label">Full Description *</label>
+                                {{ form.description|add_class:"form-control" }}
+                                {% if form.description.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.description.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-12">
+                                <div class="col-12">
+                                    <label for="{{ form.categories.id_for_label }}" class="form-label">Categories</label>
+                                    {% if form.categories.field.widget.input_type == 'select' %}
+                                        {{ form.categories }}
+                                    {% else %}
+                                        <select name="{{ form.categories.name }}" 
+                                                id="{{ form.categories.id_for_label }}" 
+                                                class="form-select select2">
+                                            {% for choice in form.categories.field.choices %}
+                                                <option value="{{ choice.0 }}"
+                                                        {% if choice.0 == form.categories.value %}selected{% endif %}>
+                                                    {{ choice.1 }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    {% endif %}
+                                    {% if form.categories.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.categories.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Date and Time -->
+                            <div class="col-12 mt-4">
+                                <h5>Date and Time</h5>
+                                <hr>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="{{ form.start_date.id_for_label }}" class="form-label">Start Date and Time *</label>
+                                {{ form.start_date|add_class:"form-control" }}
+                                {% if form.start_date.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.start_date.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="{{ form.end_date.id_for_label }}" class="form-label">End Date and Time *</label>
+                                {{ form.end_date|add_class:"form-control" }}
+                                {% if form.end_date.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.end_date.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="{{ form.registration_deadline.id_for_label }}" class="form-label">Registration Deadline</label>
+                                {{ form.registration_deadline|add_class:"form-control" }}
+                                <small class="text-muted">Optional. If not set, registration will be open until event starts.</small>
+                                {% if form.registration_deadline.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.registration_deadline.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Location -->
+                            <div class="col-12 mt-4">
+                                <h5>Location</h5>
+                                <hr>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    {{ form.is_virtual|add_class:"form-check-input" }}
+                                    <label class="form-check-label" for="{{ form.is_virtual.id_for_label }}">
+                                        This is a virtual event
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-12 location-field">
+                                <label for="{{ form.location.id_for_label }}" class="form-label">Location *</label>
+                                {{ form.location|add_class:"form-control" }}
+                                {% if form.location.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.location.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-12 virtual-link-field" style="display: none;">
+                                <label for="{{ form.virtual_link.id_for_label }}" class="form-label">Virtual Event Link</label>
+                                {{ form.virtual_link|add_class:"form-control" }}
+                                <small class="text-muted">Link to join the virtual event (Zoom, Teams, etc.)</small>
+                                {% if form.virtual_link.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.virtual_link.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Additional Details -->
+                            <div class="col-12 mt-4">
+                                <h5>Additional Details</h5>
+                                <hr>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="{{ form.capacity.id_for_label }}" class="form-label">Capacity</label>
+                                {{ form.capacity|add_class:"form-control" }}
+                                <small class="text-muted">Maximum number of attendees. Leave blank for unlimited.</small>
+                                {% if form.capacity.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.capacity.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="{{ form.image.id_for_label }}" class="form-label">Event Image</label>
+                                {% if form.instance.image %}
+                                    <div class="mb-2">
+                                        <img src="{{ form.instance.image.url }}" alt="Current image" class="img-thumbnail" style="max-height: 100px;">
+                                    </div>
+                                {% endif %}
+                                {{ form.image|add_class:"form-control" }}
+                                <small class="text-muted">Recommended size: 1200 x 630 pixels</small>
+                                {% if form.image.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.image.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-12 mt-4">
+                                <hr>
+                                <div class="d-flex justify-content-between">
+                                    <a href="{% url 'events:event_list' %}" class="btn btn-secondary">
+                                        <i class="fas fa-arrow-left me-1"></i> Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-1"></i> 
+                                        {% if form.instance.id %}Save Changes{% else %}Create Event{% endif %}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // Initialize Select2
+        $('.select2').select2({
+            theme: 'bootstrap-5'
+        });
+        
+        // Handle virtual event toggle
+        $('#{{ form.is_virtual.id_for_label }}').change(function() {
+            if($(this).is(':checked')) {
+                $('.location-field').hide();
+                $('.virtual-link-field').show();
+            } else {
+                $('.location-field').show();
+                $('.virtual-link-field').hide();
+            }
+        }).trigger('change');
+    });
+</script>
+{% endblock %}
