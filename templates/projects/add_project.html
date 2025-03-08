@@ -1,39 +1,34 @@
-{% extends 'base.html' %}{% load static %} {% block content %}
-<link rel="stylesheet" href="{% static 'css/projects/add_project.css' %}">
+{% extends 'base.html' %} {% block title %}Add Project - NxGen {%endblock %} 
+{% load static %} {% block content %}
+<link rel="stylesheet" href="{% static 'css/projects/add_project.css' %}" />
+<div class="add_project_header">
+  <h2>Add a New Project</h2>
+  <a href="{% url 'projects:project_home' %}" class="btn btn-light">
+    <i class="fas fa-arrow-left"></i> Back to Projects
+  </a>
+</div>
 
-<div class="">
-  <div class="">
-    <form method="post" enctype="multipart/form-data" id="projectForm" novalidate>
-      <h4 class="mb-0"><span class="emoji-title"></span> Add a New Project</h4>
+<p class="info-text">
+  Enter your project’s GitHub link, and all project details will be automatically retrieved.  
+  You can review and edit the details before saving.
+</p>
+
+<p class="text-muted">
+  <small class="required">*</small> Required fields are marked.
+</p>
+
+<div class="project-container">
+  <!-- Left Side: Form -->
+  <div class="project-form-container">
+    <form
+      method="post"
+      enctype="multipart/form-data"
+      id="projectForm"
+      novalidate
+    >
+      <h4 class="mb-0">Add a New Project</h4>
       {% csrf_token %}
       <div class="form-container">
-        <div class="form-section">
-          <!-- Title -->
-          <div class="mb-3">
-            <label
-              for="{{ form.title.id_for_label }}"
-              class="form-label fw-bold"
-              >Project Title <small class="required">*</small></label
-            >
-            {{ form.title }}
-            <div class="invalid-feedback">Please provide a project title.</div>
-            <div class="valid-feedback">Looks good!</div>
-          </div>
-
-          <!-- Description -->
-          <div class="mb-3 position-relative">
-            <label
-              for="{{ form.description.id_for_label }}"
-              class="form-label fw-bold"
-              >Project Description <small class="required">*</small></label
-            >
-            {{ form.description }}
-            <div class="invalid-feedback">Please provide a project description.</div>
-            <div class="valid-feedback">Great description!</div>
-            <div class="char-counter"><span id="char-count">0</span>/<span id="char-max">500</span> characters</div>
-          </div>
-        </div>
-
         <div class="form-section">
           <!-- GitHub Link -->
           <div class="mb-3">
@@ -53,9 +48,11 @@
             </div>
             <div class="valid-feedback">Valid GitHub repository!</div>
             <small class="text-muted"
-              >The GitHub link will also be used to extract the project's README and the user's profile picture if no project image is provided.</small
+              >The GitHub link will be used to extract the project's README,
+              tech stack, and profile picture if no project image is
+              provided.</small
             >
-            
+
             <!-- GitHub Repository Preview -->
             <div class="repo-preview" id="repo-preview">
               <div class="repo-header">
@@ -93,10 +90,41 @@
             >
             {{ form.tech_stack }}
             <small class="text-muted"
-              >Separate technologies with commas (e.g., Python, Django,
-              React)</small
+              >Technologies will be auto-detected from GitHub. You can also add
+              manually (separate with commas).</small
             >
             <div class="tech-stack-container" id="tech-pills-container"></div>
+          </div>
+        </div>
+        <div class="form-section">
+          <!-- Title -->
+          <div class="mb-3">
+            <label
+              for="{{ form.title.id_for_label }}"
+              class="form-label fw-bold"
+              >Project Title <small class="required">*</small></label
+            >
+            {{ form.title }}
+            <div class="invalid-feedback">Please provide a project title.</div>
+            <div class="valid-feedback">Looks good!</div>
+          </div>
+
+          <!-- Description -->
+          <div class="mb-3 position-relative">
+            <label
+              for="{{ form.description.id_for_label }}"
+              class="form-label fw-bold"
+              >Project Description <small class="required">*</small></label
+            >
+            {{ form.description }}
+            <div class="invalid-feedback">
+              Please provide a project description.
+            </div>
+            <div class="valid-feedback">Great description!</div>
+            <div class="char-counter">
+              <span id="char-count">0</span>/<span id="char-max">500</span>
+              characters
+            </div>
           </div>
         </div>
 
@@ -146,8 +174,14 @@
         <!-- Submit and Cancel Buttons Side by Side -->
         <div class="action-buttons">
           <button type="submit" class="btn btn-success" id="submitButton">
-            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-            <span class="submit-text"><i class="fas fa-paper-plane me-2"></i>Submit Project</span>
+            <span
+              class="spinner-border spinner-border-sm"
+              role="status"
+              aria-hidden="true"
+            ></span>
+            <span class="submit-text"
+              ><i class="fas fa-paper-plane me-2"></i>Submit Project</span
+            >
             <span class="loading-text">Submitting...</span>
           </button>
           <a href="{% url 'projects:project_home' %}" class="btn cancel-btn">
@@ -157,6 +191,28 @@
       </div>
     </form>
   </div>
+
+  <!-- Right Side: README Preview -->
+  <div class="readme-preview-container">
+    <div class="readme-header">
+      <h4>README Preview</h4>
+      <div class="readme-loading" id="readme-loading">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <span>Loading README...</span>
+      </div>
+    </div>
+    <div class="readme-content" id="readme-content">
+      <div class="readme-placeholder" id="readme-placeholder">
+        <i class="fas fa-file-alt fa-3x text-secondary mb-3"></i>
+        <p>Enter a valid GitHub repository URL to preview the README</p>
+      </div>
+      <div class="readme-markdown" id="readme-markdown"></div>
+    </div>
+  </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="{% static 'js/projects/add_project.js' %}"></script>
 {% endblock %}
