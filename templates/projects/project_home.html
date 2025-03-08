@@ -6,9 +6,10 @@
 {% block title %}All Projects{% endblock %}
 
 {% block content %}
+
 <link rel="stylesheet" href="{% static 'css/projects/project_home.css' %}">
 <!-- Project Header -->
-<div class="project_home_header">
+<div class="project_home_header d-flex justify-content-between align-items-center p-3 border-bottom">
   <h2 class="mb-4">Projects</h2>
   <a href="{% url 'projects:add_project' %}" class="btn-add-project">
     <i class="fas fa-plus-circle"></i> Add Project
@@ -16,7 +17,7 @@
 </div>
 
 <!-- Layout with Sidebar & Content -->
-<div class="d-flex">
+<div class="d-flex" style="margin-top: 20px;">
   <!-- Sidebar (Filters) -->
   <div class="filter-sidebar p-3">
     <h5 class="mb-3"><i class="fas fa-filter"></i> Filters</h5>
