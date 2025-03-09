@@ -1,3 +1,5 @@
 from django.contrib import admin
+from .models import LeadershipTeam, Testimonial
 
-# Register your models here.
+admin.site.register(LeadershipTeam)
+admin.site.register(Testimonial)
