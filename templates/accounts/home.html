@@ -5,93 +5,827 @@
 
 {% block extra_css %}
 <style>
+  .hero {
+    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    color: white;
+    padding: 6rem 0;
+    border-radius: 0;
+    margin-bottom: 3rem;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .hero::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url("{% static 'images/pattern.svg' %}");
+    background-size: cover;
+    opacity: 0.1;
+  }
+  
+  .feature-box {
+    padding: 2.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.08);
+    height: 100%;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+  }
+  
+  .feature-box:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.12);
+  }
+  
+  .feature-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+    transition: transform 0.3s ease;
+  }
+  
+  .feature-box:hover .feature-icon {
+    transform: scale(1.1);
+  }
+  
+  .stats-counter {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #6a11cb;
+  }
+  
+  .stats-item {
+    text-align: center;
+    padding: 2rem;
+  }
+  
+  .bg-gradient-light {
+    background: linear-gradient(to right, #f8f9fa, #e9ecef);
+  }
+  
+  }
+  
+  .recent-activity-item {
+    border-left: 3px solid #6a11cb;
+    padding-left: 1rem;
+    margin-bottom: 1rem;
+    transition: transform 0.3s ease;
+  }
+  
+  .recent-activity-item:hover {
+    transform: translateX(5px);
+  }
+  
+  .cta-section {
+    background: linear-gradient(135deg, #2575fc 0%, #6a11cb 100%);
+    color: white;
+    padding: 5rem 0;
+    border-radius: 0.5rem;
+  }
+  
+  .announcement-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    animation: pulse 2s infinite;
+  }
+  
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+  }
+  
+  .scroll-reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  
+  .scroll-reveal.revealed {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  .course-card {
+    border-radius: 0.5rem;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  }
+  
+  .course-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  }
+  
+  .card-img-overlay {
+    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+  }
+  
+  .course-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+  }
+  
+  .event-date {
+    width: 60px;
+    height: 60px;
+    background: #6a11cb;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 0.5rem;
+    transition: transform 0.3s ease;
+  }
+  
+  .list-group-item:hover .event-date {
+    transform: scale(1.1);
+  }
+  
+  .notifications-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    max-width: 350px;
+    z-index: 1050;
+  }
+
+  .notification {
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    margin-bottom: 10px;
+    transform: translateX(120%);
+    opacity: 0;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+  }
+
+  .notification.visible {
+    transform: translateX(0);
+    opacity: 1;
+  }
+
+  .notification-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  }
+
+  .notification-body {
+    padding: 10px 15px;
+  }
+
+  .notification-info {
+    border-left: 4px solid #0d6efd;
+  }
+
+  .notification-success {
+    border-left: 4px solid #198754;
+  }
+
+  .notification-warning {
+    border-left: 4px solid #ffc107;
+  }
+
+  .notification-danger {
+    border-left: 4px solid #dc3545;
+  }
+
+  .sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1030;
+  }
+  
+  /* Modern additions */
+  .btn-glow {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .btn-glow:after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: rgba(255,255,255,0.1);
+    transform: rotate(30deg);
+    animation: shimmer 3s infinite;
+  }
+  
+  @keyframes shimmer {
+    0% { transform: translateX(-100%) rotate(30deg); }
+    100% { transform: translateX(100%) rotate(30deg); }
+  }
+  
+  .stats-counter {
+    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  
+  .hero-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 10px;
+    padding: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  .typing-effect {
+    border-right: .15em solid #6a11cb;
+    white-space: nowrap;
+    overflow: hidden;
+    animation: typing 3.5s steps(40, end), blink-caret .75s step-end infinite;
+  }
+  
+  @keyframes typing {
+    from { width: 0 }
+    to { width: 100% }
+  }
+  
+  @keyframes blink-caret {
+    from, to { border-color: transparent }
+    50% { border-color: #6a11cb; }
+  }
+
+  @media (max-width: 768px) {
+    .sidebar-menu {
+      position: fixed;
+      top: 0;
+      left: -250px;
+      width: 250px;
+      height: 100%;
+      background-color: white;
+      z-index: 1040;
+      transition: left 0.3s ease;
+      overflow-y: auto;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .sidebar-menu.show {
+      left: 0;
+    }
+    
     .hero {
-        background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-        color: white;
-        padding: 5rem 0;
-        border-radius: 0.5rem;
-        margin-bottom: 2rem;
+      padding: 4rem 0;
     }
-    
-    .feature-box {
-        padding: 2rem;
-        border-radius: 0.5rem;
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
-        height: 100%;
-        transition: transform 0.3s ease;
-    }
-    
-    .feature-box:hover {
-        transform: translateY(-5px);
-    }
-    
-    .feature-icon {
-        font-size: 2.5rem;
-        margin-bottom: 1.5rem;
-    }
+  }
 </style>
 {% endblock %}
 
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ====== ANIMATED COUNTERS ======
+    const animateCounters = () => {
+        const counters = document.querySelectorAll('.stats-counter');
+        
+        counters.forEach(counter => {
+            const target = parseInt(counter.getAttribute('data-target'));
+            const duration = 2000; // animation duration in milliseconds
+            const startTime = performance.now();
+            const startValue = 0;
+            
+            function updateCounter(currentTime) {
+                const elapsedTime = currentTime - startTime;
+                
+                if (elapsedTime < duration) {
+                    // Calculate current value based on elapsed time
+                    const progress = elapsedTime / duration;
+                    const easedProgress = easeOutQuad(progress);
+                    const currentValue = Math.floor(startValue + (target - startValue) * easedProgress);
+                    
+                    counter.textContent = currentValue.toLocaleString();
+                    requestAnimationFrame(updateCounter);
+                } else {
+                    // Ensure we reach the exact target at the end
+                    counter.textContent = target.toLocaleString();
+                }
+            }
+            
+            // Start the animation
+            requestAnimationFrame(updateCounter);
+        });
+    };
+    
+    // Easing function for smoother counter animation
+    function easeOutQuad(x) {
+        return 1 - (1 - x) * (1 - x);
+    }
+    
+    // ====== SCROLL REVEAL ANIMATIONS ======
+    const handleScrollReveal = () => {
+        const revealElements = document.querySelectorAll('.scroll-reveal');
+        
+        const revealElementsInView = () => {
+            const windowHeight = window.innerHeight;
+            
+            revealElements.forEach(element => {
+                const elementTop = element.getBoundingClientRect().top;
+                const elementVisible = 150; // Element becomes visible 150px before entering viewport
+                
+                if (elementTop < windowHeight - elementVisible) {
+                    element.classList.add('revealed');
+                }
+            });
+        };
+        
+        // Reveal elements that are already in view on page load
+        revealElementsInView();
+        
+        // Reveal elements as they enter the viewport on scroll
+        window.addEventListener('scroll', revealElementsInView);
+    };
+    
+    // ====== RESPONSIVE SIDEBAR TOGGLE ======
+    const setupSidebarToggle = () => {
+        const sidebarToggler = document.getElementById('sidebarToggler');
+        const sidebar = document.querySelector('.sidebar-menu');
+        
+        if (sidebarToggler && sidebar) {
+            sidebarToggler.addEventListener('click', function() {
+                sidebar.classList.toggle('show');
+                
+                // Add overlay when sidebar is shown
+                if (sidebar.classList.contains('show')) {
+                    const overlay = document.createElement('div');
+                    overlay.className = 'sidebar-overlay';
+                    overlay.addEventListener('click', function() {
+                        sidebar.classList.remove('show');
+                        document.body.removeChild(overlay);
+                    });
+                    document.body.appendChild(overlay);
+                } else {
+                    const existingOverlay = document.querySelector('.sidebar-overlay');
+                    if (existingOverlay) {
+                        document.body.removeChild(existingOverlay);
+                    }
+                }
+            });
+        }
+    };
+    
+    // ====== TESTIMONIAL CAROUSEL ======
+    const initTestimonialCarousel = () => {
+        const testimonialCarousel = document.getElementById('testimonialCarousel');
+        
+        if (testimonialCarousel) {
+            // Initialize Bootstrap carousel with options
+            const carousel = new bootstrap.Carousel(testimonialCarousel, {
+                interval: 5000,       // Auto-cycle every 5 seconds
+                keyboard: true,       // React to keyboard events
+                pause: 'hover',       // Pause on hover
+                wrap: true            // Continuous cycling
+            });
+            
+            // Optional: Add swipe support for mobile devices
+            let touchStartX = 0;
+            let touchEndX = 0;
+            
+            testimonialCarousel.addEventListener('touchstart', e => {
+                touchStartX = e.changedTouches[0].screenX;
+            }, false);
+            
+            testimonialCarousel.addEventListener('touchend', e => {
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipe();
+            }, false);
+            
+            const handleSwipe = () => {
+                if (touchEndX < touchStartX - 50) {
+                    // Swipe left, go to next slide
+                    carousel.next();
+                } else if (touchEndX > touchStartX + 50) {
+                    // Swipe right, go to previous slide
+                    carousel.prev();
+                }
+            };
+        }
+    };
+    
+    // ====== NOTIFICATION SYSTEM ======
+    const setupNotifications = () => {
+        const notificationsContainer = document.getElementById('notificationsContainer');
+        
+        // Function to check for new notifications
+        const checkForNotifications = () => {
+            // This would typically be an AJAX call to your backend
+            // For demonstration, we'll simulate a notification after 5 seconds
+            setTimeout(() => {
+                if (notificationsContainer) {
+                    showNotification('Welcome to NxGen!', 'Explore our latest features and courses.');
+                }
+            }, 5000);
+        };
+        
+        // Function to display a notification
+        window.showNotification = (title, message, type = 'info') => {
+            if (!notificationsContainer) return;
+            
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.innerHTML = `
+                <div class="notification-header">
+                    <strong>${title}</strong>
+                    <button type="button" class="btn-close btn-sm"></button>
+                </div>
+                <div class="notification-body">${message}</div>
+            `;
+            
+            notificationsContainer.appendChild(notification);
+            
+            // Add visible class after a short delay (for animation)
+            setTimeout(() => {
+                notification.classList.add('visible');
+            }, 10);
+            
+            // Close button functionality
+            const closeBtn = notification.querySelector('.btn-close');
+            closeBtn.addEventListener('click', () => {
+                notification.classList.remove('visible');
+                
+                // Remove from DOM after animation completes
+                setTimeout(() => {
+                    notificationsContainer.removeChild(notification);
+                }, 300);
+            });
+            
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => {
+                if (notification.parentNode === notificationsContainer) {
+                    notification.classList.remove('visible');
+                    
+                    setTimeout(() => {
+                        if (notification.parentNode === notificationsContainer) {
+                            notificationsContainer.removeChild(notification);
+                        }
+                    }, 300);
+                }
+            }, 5000);
+        };
+        
+        // Initialize notifications
+        if (notificationsContainer) {
+            checkForNotifications();
+        }
+    };
+    
+    // ====== DYNAMIC TIME-BASED GREETING ======
+    const updateTimeBasedElements = () => {
+        const currentHour = new Date().getHours();
+        const greetingElement = document.querySelector('.time-greeting');
+        
+        if (greetingElement) {
+            if (currentHour < 12) {
+                greetingElement.textContent = 'Good Morning';
+            } else if (currentHour < 18) {
+                greetingElement.textContent = 'Good Afternoon';
+            } else {
+                greetingElement.textContent = 'Good Evening';
+            }
+        }
+    };
+    
+    // ====== TYPING EFFECT ======
+    const initTypingEffect = () => {
+        const typingElements = document.querySelectorAll('.typing-effect');
+        typingElements.forEach(element => {
+            // Initialize with zero width
+            element.style.width = '0';
+            
+            // Start typing animation after a delay
+            setTimeout(() => {
+                element.style.animation = 'typing 3.5s steps(40, end), blink-caret .75s step-end infinite';
+                element.style.width = '100%';
+            }, 500);
+        });
+    };
+    
+    // ====== INITIALIZE ALL DYNAMIC FEATURES ======
+    const initDynamicFeatures = () => {
+        animateCounters();
+        handleScrollReveal();
+        setupSidebarToggle();
+        initTestimonialCarousel();
+        setupNotifications();
+        updateTimeBasedElements();
+        initTypingEffect();
+        
+        // Initialize tooltips and popovers if used
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        if (tooltipTriggerList.length > 0) {
+            Array.from(tooltipTriggerList).map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+        }
+        
+        const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]');
+        if (popoverTriggerList.length > 0) {
+            Array.from(popoverTriggerList).map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl));
+        }
+    };
+    
+    // Run all initialization functions
+    initDynamicFeatures();
+});
+</script>
+{% endblock %}
+
 {% block content %}
-<!-- Hero Section -->
+<!-- Notifications Container -->
+<div id="notificationsContainer" class="notifications-container"></div>
+
+<!-- Hero Section with Dynamic Welcome Message -->
 <div class="hero text-center">
-    <div class="container">
-        <h1 class="display-4 fw-bold mb-4">Welcome to NxGen</h1>
-        <p class="lead mb-5">The next generation platform for innovation, collaboration, and growth.</p>
-        {% if not user.is_authenticated %}
-            <div class="d-flex justify-content-center gap-3">
-                <a href="{% url 'login' %}" class="btn btn-light btn-lg px-4">Login</a>
-                <a href="{% url 'register' %}" class="btn btn-outline-light btn-lg px-4">Register</a>
-            </div>
+  <div class="container">
+    <div class="hero-card mx-auto" style="max-width: 800px;">
+      <span class="d-block mb-3 time-greeting">
+        {% if is_morning %}
+          Good Morning
+        {% elif is_afternoon %}
+          Good Afternoon
         {% else %}
-            <a href="{% url 'profile' %}" class="btn btn-light btn-lg px-4">View Your Profile</a>
+          Good Evening
         {% endif %}
+      </span>
+    
+      <h1 class="display-4 fw-bold mb-4 typing-effect">
+        {% if user.is_authenticated %}
+          Welcome Back, {{ user.first_name|default:user.username }}!
+        {% else %}
+          Discover the Future with NxGen
+        {% endif %}
+      </h1>
+    
+      <p class="lead mb-5">The next generation platform for innovation, collaboration, and growth.</p>
+    
+      {% if not user.is_authenticated %}
+        <div class="d-flex justify-content-center gap-3">
+          <a href="{% url 'login' %}" class="btn btn-light btn-lg px-4 btn-glow">
+            <i class="fas fa-sign-in-alt me-2"></i> Login
+          </a>
+          <a href="{% url 'register' %}" class="btn btn-outline-light btn-lg px-4">
+            <i class="fas fa-user-plus me-2"></i> Register
+          </a>
+        </div>
+      {% else %}
+        <div class="d-flex justify-content-center gap-3">
+          <a href="{% url 'profile' %}" class="btn btn-light btn-lg px-4 btn-glow">
+            <i class="fas fa-user me-2"></i> Your Profile
+          </a>
+          <a href="{% url 'courses:my_courses' %}" class="btn btn-outline-light btn-lg px-4">
+            <i class="fas fa-book me-2"></i> My Learning Path
+          </a>
+        </div>
+      {% endif %}
+    
+      {% if latest_announcement %}
+        <div class="position-relative mt-4">
+          <div class="announcement-badge badge bg-danger py-2 px-3">New!</div>
+          <div class="alert alert-light d-inline-block">
+            <i class="fas fa-bullhorn me-2"></i> {{ latest_announcement.title }}
+            <a href="{% url 'announcements:detail' latest_announcement.id %}" class="ms-2 text-decoration-none">Read more</a>
+          </div>
+        </div>
+      {% endif %}
     </div>
+  </div>
 </div>
 
-<!-- Features Section -->
-<div class="container mt-5">
-    <h2 class="text-center mb-5">Key Features</h2>
+<!-- Stats Section -->
+<div class="container mt-5 mb-5 scroll-reveal">
+  <div class="row g-4 text-center">
+    <div class="col-md-3 col-6">
+      <div class="stats-item">
+        <div class="stats-counter" data-target="{{ user_count }}">0</div>
+        <p class="mb-0">Community Members</p>
+      </div>
+    </div>
+    <div class="col-md-3 col-6">
+      <div class="stats-item">
+        <div class="stats-counter" data-target="{{ course_count }}">0</div>
+        <p class="mb-0">Courses Available</p>
+      </div>
+    </div>
+    <div class="col-md-3 col-6">
+      <div class="stats-item">
+        <div class="stats-counter" data-target="{{ project_count }}">0</div>
+        <p class="mb-0">Active Projects</p>
+      </div>
+    </div>
+    <div class="col-md-3 col-6">
+      <div class="stats-item">
+        <div class="stats-counter" data-target="{{ forum_post_count }}">0</div>
+        <p class="mb-0">Forum Discussions</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Features Section with Enhanced Icons -->
+<div class="container mt-5 mb-5">
+  <h2 class="text-center mb-2">Why Choose NxGen?</h2>
+  <p class="text-center text-muted mb-5">Empowering innovators with cutting-edge tools and resources</p>
+  
+  <div class="row g-4">
+    <!-- Feature 1 -->
+    <div class="col-lg-3 col-md-6 scroll-reveal">
+      <div class="feature-box bg-light">
+        <div class="text-primary feature-icon">
+          <i class="fas fa-shield-alt"></i>
+        </div>
+        <h3>Secure Platform</h3>
+        <p>Enterprise-grade security with robust authentication and data protection systems.</p>
+      </div>
+    </div>
+    
+    <!-- Feature 2 -->
+    <div class="col-lg-3 col-md-6 scroll-reveal" style="transition-delay: 0.1s;">
+      <div class="feature-box bg-light">
+        <div class="text-primary feature-icon">
+          <i class="fas fa-mobile-alt"></i>
+        </div>
+        <h3>Responsive Design</h3>
+        <p>Seamless experience across all devices - desktop, tablet and mobile.</p>
+      </div>
+    </div>
+    
+    <!-- Feature 3 -->
+    <div class="col-lg-3 col-md-6 scroll-reveal" style="transition-delay: 0.2s;">
+      <div class="feature-box bg-light">
+        <div class="text-primary feature-icon">
+          <i class="fas fa-user-circle"></i>
+        </div>
+        <h3>Custom Profiles</h3>
+        <p>Personalized profiles with portfolio showcase and achievement tracking.</p>
+      </div>
+    </div>
+    
+    <!-- Feature 4 -->
+    <div class="col-lg-3 col-md-6 scroll-reveal" style="transition-delay: 0.3s;">
+      <div class="feature-box bg-light">
+        <div class="text-primary feature-icon">
+          <i class="fas fa-project-diagram"></i>
+        </div>
+        <h3>Collaboration Tools</h3>
+        <p>Real-time project collaboration with integrated chat and file sharing.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Featured Courses Section -->
+{% if featured_courses %}
+<div class="container-fluid bg-gradient-light py-5 mt-5 scroll-reveal">
+  <div class="container">
+    <h2 class="text-center mb-2">Featured Courses</h2>
+    <p class="text-center text-muted mb-5">Expand your knowledge with our top courses</p>
+    
     <div class="row g-4">
-        <!-- Feature 1 -->
+      {% for course in featured_courses|slice:":3" %}
         <div class="col-md-4">
-            <div class="feature-box bg-light">
-                <div class="text-primary feature-icon">
-                    <i class="fas fa-shield-alt"></i>
-                </div>
-                <h3>Secure Authentication</h3>
-                <p>Robust user authentication and authorization system ensures your data stays protected.</p>
+          <div class="card course-card h-100 border-0 shadow-sm">
+            <img src="{{ course.image.url|default:'{% static "images/course-default.jpg" %}' }}" 
+                 class="card-img-top" alt="{{ course.title }}" style="height: 180px; object-fit: cover;">
+            <div class="card-img-overlay d-flex flex-column justify-content-end text-white">
+              <h5 class="card-title">{{ course.title }}</h5>
+              <p class="card-text"><small>{{ course.instructor.get_full_name }}</small></p>
+              
+              {% if course.is_new %}
+                <span class="badge bg-danger course-badge">New</span>
+              {% endif %}
             </div>
-        </div>
-        <!-- Feature 2 -->
-        <div class="col-md-4">
-            <div class="feature-box bg-light">
-                <div class="text-primary feature-icon">
-                    <i class="fas fa-mobile-alt"></i>
+            <div class="card-body">
+              <p class="card-text">{{ course.description|truncatechars:100 }}</p>
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <i class="fas fa-users me-1 text-muted"></i>
+                  <small class="text-muted">{{ course.enrolled_count }} enrolled</small>
                 </div>
-                <h3>Responsive Design</h3>
-                <p>Fully responsive interface that works seamlessly across desktops, tablets, and mobile devices.</p>
+                <a href="{% url 'courses:course_detail' course.slug %}" class="btn btn-sm btn-outline-primary">Learn More</a>
+              </div>
             </div>
+          </div>
         </div>
-        <!-- Feature 3 -->
-        <div class="col-md-4">
-            <div class="feature-box bg-light">
-                <div class="text-primary feature-icon">
-                    <i class="fas fa-user-circle"></i>
-                </div>
-                <h3>Custom Profiles</h3>
-                <p>Personalized user profiles with customizable settings and profile pictures.</p>
-            </div>
-        </div>
+      {% endfor %}
     </div>
+    
+    <div class="text-center mt-4">
+      <a href="{% url 'courses:course_list' %}" class="btn btn-primary">View All Courses</a>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Recent Activity & Upcoming Events Section -->
+<div class="container mt-5 scroll-reveal">
+  <div class="row g-4">
+    <!-- Recent Activity Feed -->
+    <div class="col-lg-8">
+      <h3 class="mb-4">Community Activity</h3>
+      
+      {% if recent_activities %}
+        <div class="recent-activity-list">
+          {% for activity in recent_activities %}
+            <div class="recent-activity-item">
+              <div class="d-flex align-items-center mb-2">
+                {% if activity.user.profile.image %}
+                  <img src="{{ activity.user.profile.image.url }}" class="rounded-circle me-2" 
+                       style="width: 40px; height: 40px; object-fit: cover;">
+                {% else %}
+                  <img src="{% static 'images/default.jpg' %}" class="rounded-circle me-2" 
+                       style="width: 40px; height: 40px; object-fit: cover;">
+                {% endif %}
+                <div>
+                  <h6 class="mb-0">{{ activity.user.get_full_name|default:activity.user.username }}</h6>
+                  <small class="text-muted">{{ activity.timestamp|timesince }} ago</small>
+                </div>
+              </div>
+              <p class="mb-1">{{ activity.description }}</p>
+              {% if activity.link_url %}
+                <a href="{{ activity.link_url }}" class="text-decoration-none">View details</a>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="text-muted">No recent activity to display.</div>
+      {% endif %}
+    </div>
+    
+    <!-- Upcoming Events - Limited to 2 -->
+    <div class="col-lg-4">
+      <h3 class="mb-4">Upcoming Events</h3>
+      
+      {% if upcoming_events %}
+        <div class="list-group">
+          {% for event in upcoming_events|slice:":2" %}
+            <div class="list-group-item border-0 mb-3 shadow-sm rounded">
+              <div class="d-flex">
+                <div class="event-date me-3">
+                  <span class="fw-bold">{{ event.start_date|date:"d" }}</span>
+                  <small>{{ event.start_date|date:"M" }}</small>
+                </div>
+                <div>
+                  <h6 class="mb-1">{{ event.title }}</h6>
+                  <p class="mb-1 small text-muted">
+                    <i class="fas fa-clock me-1"></i> {{ event.start_date|date:"g:i A" }}
+                    {% if event.location %}
+                      <span class="ms-2"><i class="fas fa-map-marker-alt me-1"></i> {{ event.location }}</span>
+                    {% endif %}
+                  </p>
+                  <a href="{% url 'events:event_detail' event.slug %}" class="btn btn-sm btn-outline-primary mt-2">
+                    View Details
+                  </a>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+        <div class="text-center mt-3">
+          <a href="{% url 'events:event_list' %}" class="btn btn-outline-primary btn-sm">View All Events</a>
+        </div>
+      {% else %}
+        <div class="text-muted">No upcoming events scheduled.</div>
+      {% endif %}
+    </div>
+  </div>
 </div>
 
-<!-- Call to Action -->
-<div class="container mt-5 py-5 text-center">
-    <h2>Ready to Get Started?</h2>
-    <p class="lead mb-4">Join thousands of users already using NxGen to transform their ideas into reality.</p>
+<!-- Call to Action Section -->
+<div class="cta-section mt-5 scroll-reveal">
+  <div class="container text-center">
+    <h2 class="mb-4">Ready to Transform Your Ideas?</h2>
+    <p class="lead mb-4">Join thousands of innovators already using NxGen to build the future.</p>
+    
     {% if not user.is_authenticated %}
-        <a href="{% url 'register' %}" class="btn btn-primary btn-lg px-4 me-md-2">Sign Up Now</a>
+      <a href="{% url 'register' %}" class="btn btn-light btn-lg px-5 me-md-3 mb-3 mb-md-0">
+        <i class="fas fa-rocket me-2"></i> Get Started Free
+      </a>
+      <a href="{% url 'about' %}" class="btn btn-outline-light btn-lg px-5">Learn More</a>
+    {% else %}
+      <a href="#" class="btn btn-light btn-lg px-5 me-md-3 mb-3 mb-md-0">
+        <i class="fas fa-lightbulb me-2"></i> Start a New Project
+      </a>
+      <a href="{% url 'forums:forum_home' %}" class="btn btn-outline-light btn-lg px-5">
+        <i class="fas fa-comments me-2"></i> Join Discussions
+      </a>
     {% endif %}
+  </div>
 </div>
 {% endblock %}
