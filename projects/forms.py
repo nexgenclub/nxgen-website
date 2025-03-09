@@ -1,5 +1,5 @@
 from django import forms
-from .models import Project, Comment
+from .models import Project
 
 class ProjectForm(forms.ModelForm):
     class Meta:
@@ -13,8 +13,3 @@ class ProjectForm(forms.ModelForm):
             'image': forms.ClearableFileInput(attrs={'class': 'form-control'}),
             'is_seeking_collaborators': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
-
-class CommentForm(forms.ModelForm):
-    class Meta:
-        model = Comment
-        fields = ['content']

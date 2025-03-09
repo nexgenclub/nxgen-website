@@ -1,12 +1,10 @@
 document.addEventListener("DOMContentLoaded", function () {
-  // Elements for image upload
   const dropArea = document.getElementById("drop-area");
   const fileInput = document.getElementById("fileElem");
   const preview = document.getElementById("preview");
   const browseButton = document.getElementById("browseButton");
   const removeButton = document.querySelector(".remove-image");
 
-  // Form elements for validation
   const form = document.getElementById("projectForm");
   const titleInput = document.querySelector("input[name='title']");
   const descriptionInput = document.querySelector(
@@ -16,17 +14,14 @@ document.addEventListener("DOMContentLoaded", function () {
   const techStackInput = document.querySelector("input[name='tech_stack']");
   const submitButton = document.getElementById("submitButton");
 
-  // Character counter for description
   const charCounter = document.querySelector(".char-counter");
   const charCount = document.getElementById("char-count");
   const charMax = document.getElementById("char-max");
-  const MAX_CHARS = 500; // Set your max character limit
+  const MAX_CHARS = 500;
   charMax.textContent = MAX_CHARS;
 
-  // Tech stack pills container
   const techPillsContainer = document.getElementById("tech-pills-container");
 
-  // GitHub repository preview
   const repoPreview = document.getElementById("repo-preview");
   const repoName = document.getElementById("repo-name");
   const repoStars = document.getElementById("repo-stars");
@@ -34,11 +29,32 @@ document.addEventListener("DOMContentLoaded", function () {
   const repoUpdated = document.getElementById("repo-updated");
   const repoDescription = document.getElementById("repo-description");
 
-  // Form validation
+  const readmePreviewContainer = document.querySelector(
+    ".readme-preview-container"
+  );
+  const readmeContent = document.getElementById("readme-content");
+  const readmePlaceholder = document.getElementById("readme-placeholder");
+  const readmeMarkdown = document.getElementById("readme-markdown");
+  const readmeLoading = document.getElementById("readme-loading");
+
+  const style = document.createElement("style");
+  style.textContent = `
+    .repo-preview.error {
+      background-color: #fff8f8;
+      border-color: #dc3545;
+    }
+    .repo-preview.error .repo-description {
+      color: #dc3545;
+    }
+  `;
+  document.head.appendChild(style);
+
+  readmePreviewContainer.style.display = "none";
+  submitButton.disabled = true;
+
   function validateForm() {
     let isValid = true;
 
-    // Validate title
     if (!titleInput.value.trim()) {
       titleInput.classList.add("is-invalid");
       titleInput.classList.remove("is-valid");
@@ -48,7 +64,6 @@ document.addEventListener("DOMContentLoaded", function () {
       titleInput.classList.add("is-valid");
     }
 
-    // Validate description
     if (!descriptionInput.value.trim()) {
       descriptionInput.classList.add("is-invalid");
       descriptionInput.classList.remove("is-valid");
@@ -58,11 +73,9 @@ document.addEventListener("DOMContentLoaded", function () {
       descriptionInput.classList.add("is-valid");
     }
 
-    // Validate GitHub link
-    const githubRegex = /^https?:\/\/github\.com\/[\w-]+\/[\w.-]+\/?$/;
     if (
-      !githubLinkInput.value.trim() ||
-      !githubRegex.test(githubLinkInput.value)
+      !githubLinkInput.dataset.verified ||
+      githubLinkInput.dataset.verified === "false"
     ) {
       githubLinkInput.classList.add("is-invalid");
       githubLinkInput.classList.remove("is-valid");
@@ -72,10 +85,47 @@ document.addEventListener("DOMContentLoaded", function () {
       githubLinkInput.classList.add("is-valid");
     }
 
+    submitButton.disabled = !isValid;
     return isValid;
   }
 
-  // Live input validation
+  function clearGitHubData() {
+    repoPreview.classList.remove("active", "loading", "error");
+    repoName.textContent = "";
+    repoStars.textContent = "";
+    repoForks.textContent = "";
+    repoUpdated.textContent = "";
+    repoDescription.textContent = "";
+
+    readmePreviewContainer.style.display = "none";
+    readmePlaceholder.style.display = "flex";
+    readmeMarkdown.style.display = "none";
+    readmeLoading.style.display = "none";
+    readmeMarkdown.innerHTML = "";
+
+    githubLinkInput.dataset.verified = "false";
+
+    // Clear title, description, and tech stack when link is removed
+    if (titleInput.dataset.autoPopulated === "true") {
+      titleInput.value = "";
+      titleInput.classList.remove("is-valid");
+      titleInput.dataset.autoPopulated = "false";
+    }
+
+    if (descriptionInput.dataset.autoPopulated === "true") {
+      descriptionInput.value = "";
+      descriptionInput.classList.remove("is-valid");
+      charCount.textContent = "0";
+      descriptionInput.dataset.autoPopulated = "false";
+    }
+
+    if (techStackInput.dataset.autoPopulated === "true") {
+      techStackInput.value = "";
+      updateTechPills();
+      techStackInput.dataset.autoPopulated = "false";
+    }
+  }
+
   titleInput.addEventListener("input", function () {
     if (this.value.trim()) {
       this.classList.remove("is-invalid");
@@ -84,6 +134,7 @@ document.addEventListener("DOMContentLoaded", function () {
       this.classList.add("is-invalid");
       this.classList.remove("is-valid");
     }
+    validateForm();
   });
 
   descriptionInput.addEventListener("input", function () {
@@ -95,7 +146,6 @@ document.addEventListener("DOMContentLoaded", function () {
       this.classList.remove("is-valid");
     }
 
-    // Update character counter
     const count = this.value.length;
     charCount.textContent = count;
 
@@ -108,34 +158,49 @@ document.addEventListener("DOMContentLoaded", function () {
     } else {
       charCounter.classList.remove("warning", "danger");
     }
+
+    validateForm();
   });
 
   githubLinkInput.addEventListener("input", function () {
     const githubRegex = /^https?:\/\/github\.com\/[\w-]+\/[\w.-]+\/?$/;
+
+    clearGitHubData();
+
     if (this.value.trim() && githubRegex.test(this.value)) {
-      this.classList.remove("is-invalid");
-      this.classList.add("is-valid");
       fetchGitHubRepoInfo(this.value);
     } else {
       this.classList.add("is-invalid");
       this.classList.remove("is-valid");
-      repoPreview.classList.remove("active");
+      validateForm();
     }
   });
 
-  // GitHub repository info fetch - FIXED VERSION
-  function fetchGitHubRepoInfo(url) {
-    // Extract owner and repo name from URL
+  function extractRepoInfo(url) {
     const match = url.match(/github\.com\/([^\/]+)\/([^\/]+)/);
-    if (!match) return;
+    if (!match) return null;
 
-    const owner = match[1];
-    const repo = match[2].replace(/\/$/, ""); // Remove trailing slash if present
+    return {
+      owner: match[1],
+      repo: match[2].replace(/\/$/, ""),
+    };
+  }
 
-    // Show loading state
+  function fetchGitHubRepoInfo(url) {
+    const repoInfo = extractRepoInfo(url);
+    if (!repoInfo) {
+      githubLinkInput.dataset.verified = "false";
+      validateForm();
+      return;
+    }
+
+    const { owner, repo } = repoInfo;
+
     repoPreview.classList.add("loading");
+    repoPreview.classList.remove("error");
+    githubLinkInput.dataset.verified = "false";
+    validateForm();
 
-    // Fetch data from GitHub API
     fetch(`https://api.github.com/repos/${owner}/${repo}`)
       .then((response) => {
         if (!response.ok) {
@@ -144,7 +209,6 @@ document.addEventListener("DOMContentLoaded", function () {
         return response.json();
       })
       .then((data) => {
-        // Format the date
         const updateDate = new Date(data.updated_at);
         const now = new Date();
         const diffTime = Math.abs(now - updateDate);
@@ -165,7 +229,6 @@ document.addEventListener("DOMContentLoaded", function () {
           updatedText = `${years} year${years > 1 ? "s" : ""} ago`;
         }
 
-        // Update the repository preview
         repoName.textContent = data.name;
         repoStars.textContent = data.stargazers_count.toLocaleString();
         repoForks.textContent = data.forks_count.toLocaleString();
@@ -173,27 +236,111 @@ document.addEventListener("DOMContentLoaded", function () {
         repoDescription.textContent =
           data.description || "No description provided.";
 
-        // Remove loading state and show the preview
         repoPreview.classList.remove("loading");
         repoPreview.classList.add("active");
+
+        githubLinkInput.dataset.verified = "true";
+        validateForm();
+
+        if (!titleInput.value.trim()) {
+          titleInput.value = data.name;
+          titleInput.classList.add("is-valid");
+          titleInput.dataset.autoPopulated = "true";
+          validateForm();
+        }
+
+        if (!descriptionInput.value.trim() && data.description) {
+          descriptionInput.value = data.description;
+          descriptionInput.classList.add("is-valid");
+          descriptionInput.dataset.autoPopulated = "true";
+          charCount.textContent = data.description.length;
+          validateForm();
+        }
+
+        fetchReadme(owner, repo);
+        fetchRepoLanguages(owner, repo);
       })
       .catch((error) => {
         console.error("Error fetching GitHub repository data:", error);
         repoPreview.classList.remove("loading", "active");
 
-        // Show error message in the UI (optional)
         repoPreview.classList.add("error");
         repoDescription.textContent =
-          "Could not fetch repository information. Please check the URL.";
+          "Repository not found or inaccessible. Please check the URL.";
+
+        githubLinkInput.dataset.verified = "false";
+        githubLinkInput.classList.add("is-invalid");
+        githubLinkInput.classList.remove("is-valid");
+        validateForm();
+
+        readmePreviewContainer.style.display = "none";
+        readmePlaceholder.style.display = "flex";
+        readmeMarkdown.style.display = "none";
+        readmeLoading.style.display = "none";
       });
   }
 
-  // Tech stack pills
+  function fetchReadme(owner, repo) {
+    readmePreviewContainer.style.display = "flex";
+    readmeLoading.style.display = "flex";
+    readmePlaceholder.style.display = "none";
+    readmeMarkdown.style.display = "none";
+
+    fetch(`https://api.github.com/repos/${owner}/${repo}/readme`)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`GitHub API request failed: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        const content = atob(data.content);
+        readmeMarkdown.innerHTML = marked.parse(content);
+
+        readmeLoading.style.display = "none";
+        readmePlaceholder.style.display = "none";
+        readmeMarkdown.style.display = "block";
+      })
+      .catch((error) => {
+        console.error("Error fetching README:", error);
+        readmeLoading.style.display = "none";
+
+        readmePlaceholder.style.display = "flex";
+        readmePlaceholder.innerHTML = `
+          <i class="fas fa-exclamation-circle fa-3x text-warning mb-3"></i>
+          <p>Could not find a README file in this repository</p>
+        `;
+        readmeMarkdown.style.display = "none";
+      });
+  }
+
+  function fetchRepoLanguages(owner, repo) {
+    fetch(`https://api.github.com/repos/${owner}/${repo}/languages`)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`GitHub API request failed: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        const languages = Object.keys(data);
+
+        if (languages.length > 0) {
+          if (!techStackInput.value.trim()) {
+            techStackInput.value = languages.join(", ");
+            techStackInput.dataset.autoPopulated = "true";
+            updateTechPills();
+          }
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching languages:", error);
+      });
+  }
+
   function updateTechPills() {
-    // Clear existing pills
     techPillsContainer.innerHTML = "";
 
-    // Get tech stack value and split by commas
     const techStack = techStackInput.value.trim();
     if (!techStack) return;
 
@@ -202,7 +349,6 @@ document.addEventListener("DOMContentLoaded", function () {
       .map((tech) => tech.trim())
       .filter((tech) => tech);
 
-    // Create pills for each tech
     techs.forEach((tech) => {
       if (tech) {
         const pill = document.createElement("div");
@@ -215,7 +361,6 @@ document.addEventListener("DOMContentLoaded", function () {
         removeBtn.className = "remove-tech";
         removeBtn.innerHTML = "&times;";
         removeBtn.addEventListener("click", function () {
-          // Remove this tech from the input value
           const updatedTechs = techStackInput.value
             .split(",")
             .map((t) => t.trim())
@@ -240,27 +385,21 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // Form submission with loading state
   form.addEventListener("submit", function (e) {
     e.preventDefault();
 
-    // Validate form first
     if (!validateForm()) {
       return false;
     }
 
-    // Set loading state
     submitButton.classList.add("loading");
     submitButton.disabled = true;
 
-    // Simulate form submission (remove in real implementation)
     setTimeout(() => {
-      // In a real implementation, you would submit the form here
       this.submit();
     }, 2000);
   });
 
-  // Prevent default drag behaviors
   ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
     dropArea.addEventListener(eventName, preventDefaults, false);
   });
@@ -270,7 +409,6 @@ document.addEventListener("DOMContentLoaded", function () {
     e.stopPropagation();
   }
 
-  // Highlight drop area when item is dragged over it
   ["dragenter", "dragover"].forEach((eventName) => {
     dropArea.addEventListener(eventName, highlight, false);
   });
@@ -287,7 +425,6 @@ document.addEventListener("DOMContentLoaded", function () {
     dropArea.classList.remove("highlight");
   }
 
-  // Handle dropped files
   dropArea.addEventListener("drop", handleDrop, false);
 
   function handleDrop(e) {
@@ -299,19 +436,16 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // Browse button click handler
   browseButton.addEventListener("click", function () {
     fileInput.click();
   });
 
-  // File input change handler
   fileInput.addEventListener("change", function () {
     if (this.files.length) {
       handleFiles(this.files);
     }
   });
 
-  // Remove image button click handler
   removeButton.addEventListener("click", function () {
     preview.src = "";
     fileInput.value = "";
@@ -335,15 +469,14 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // Initialize character count
   charCount.textContent = descriptionInput.value.length;
 
-  // Initialize tech pills if there's initial value
   if (techStackInput.value.trim()) {
     updateTechPills();
   }
 
-  // Initialize GitHub repo preview if there's a valid URL
+  validateForm();
+
   if (githubLinkInput.value.trim()) {
     const githubRegex = /^https?:\/\/github\.com\/[\w-]+\/[\w.-]+\/?$/;
     if (githubRegex.test(githubLinkInput.value)) {
