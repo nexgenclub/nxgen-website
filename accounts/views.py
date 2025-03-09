@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -9,6 +10,12 @@ from django.contrib.auth.views import LoginView, PasswordResetView, PasswordRese
 from django.urls import reverse_lazy
 from .forms import UserRegisterForm, UserUpdateForm, ProfileUpdateForm
 from .models import Profile
+from django.utils import timezone 
+from .models import Profile
+from courses.models import Course
+from projects.models import Project
+from forums.models import Post as ForumPost
+from events.models import Event
 
 def register(request):
     if request.method == 'POST':
@@ -54,8 +61,20 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
     template_name = 'accounts/password_reset_confirm.html'
 
 def home(request):
-    """View function for the homepage"""
-    return render(request, 'accounts/home.html')
+    context = {
+        'is_morning': datetime.now().hour < 12,
+        'is_afternoon': 12 <= datetime.now().hour < 18,
+        'user_count': Profile.objects.count(),
+        'course_count': Course.objects.count(),
+        'project_count': Project.objects.count(),
+        'forum_post_count': ForumPost.objects.count(),
+        'latest_announcement': None,  # Assuming Announcement model is not provided
+        'featured_courses': Course.objects.filter(is_featured=True)[:3],
+        'recent_activities': None,  # Assuming Activity model is not provided
+        'upcoming_events': Event.objects.filter(start_date__gte=timezone.now()).order_by('start_date')[:3],
+    }
+    return render(request, 'accounts/home.html', context)
+
 
 @login_required
 def view_profile(request):
