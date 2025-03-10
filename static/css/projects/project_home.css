@@ -3,6 +3,12 @@
     justify-content: space-between;
     align-items: center;
     padding: 10px 0;
+    flex-wrap: nowrap;
+}
+
+.project_home_header h2, .project_home_header .btn-add-project {
+    display: inline-flex;
+    align-items: center;
 }
 
 .project_home_header h2 {
@@ -12,7 +18,7 @@
 }
 
 .btn-add-project {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     background-color: #007bff;
     color: white;
@@ -33,6 +39,7 @@
     background-color: #0056b3;
     transform: scale(1.05);
 }
+
 .card {
     height: 100%;
     display: flex;
