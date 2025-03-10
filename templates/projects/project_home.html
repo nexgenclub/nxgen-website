@@ -6,9 +6,10 @@
 {% block title %}All Projects{% endblock %}
 
 {% block content %}
+
 <link rel="stylesheet" href="{% static 'css/projects/project_home.css' %}">
 <!-- Project Header -->
-<div class="project_home_header d-flex justify-content-between align-items-center p-3 border-bottom">
+<div class="project_home_header border-bottom">
   <h2 class="mb-4">Projects</h2>
   <a href="{% url 'projects:add_project' %}" class="btn-add-project">
     <i class="fas fa-plus-circle"></i> Add Project
