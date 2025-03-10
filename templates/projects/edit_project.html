@@ -160,7 +160,9 @@
             />
           </div>
           <!-- Store the project image URL in a hidden input instead of as a visible image -->
+           {% if project.image %}
           <input type="hidden" id="existing-image-url" value="{{ project.image.url }}" />
+          {% endif %}
         </div>
 
         <!-- Seeking Collaborators Checkbox -->
