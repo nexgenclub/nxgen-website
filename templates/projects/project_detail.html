@@ -2,7 +2,13 @@
 {% block content %} {% load static %} {% load github_filters %} 
 {% load remove_commas %}
 <link rel="stylesheet" href="{% static 'css/projects/project_details.css' %}" />
+<style>
+  a#repo-github-link {
+  word-break: break-all;
+  white-space: normal;
+}
 
+</style>
 <div
   class="header_container d-flex justify-content-between align-items-center p-3 border-bottom"
 >
