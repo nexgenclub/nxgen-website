@@ -105,7 +105,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     githubLinkInput.dataset.verified = "false";
 
-    // Clear title, description, and tech stack when link is removed
     if (titleInput.dataset.autoPopulated === "true") {
       titleInput.value = "";
       titleInput.classList.remove("is-valid");
@@ -482,5 +481,12 @@ document.addEventListener("DOMContentLoaded", function () {
     if (githubRegex.test(githubLinkInput.value)) {
       fetchGitHubRepoInfo(githubLinkInput.value);
     }
+  }
+
+  // Use the hidden input for existing image rather than a visible image element
+  const existingImageUrl = document.getElementById("existing-image-url");
+  if (existingImageUrl && existingImageUrl.value) {
+    preview.src = existingImageUrl.value;
+    dropArea.classList.add("has-image");
   }
 });
