@@ -5,43 +5,67 @@
 
 {% block extra_css %}
 <style>
-    .event-header {
-        background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
+    :root {
+        --primary-color: #4361ee;
+        --primary-hover: #3a56d4;
+        --secondary-color: #f72585;
+        --accent-color: #7209b7;
+        --light-bg: #f8f9fa;
+        --dark-text: #212529;
+        --medium-text: #6c757d;
+        --light-text: #f8f9fa;
+        --border-radius: 12px;
+        --box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        --transition: all 0.3s ease;
+    }
+    
+    /* Event Header */
+    .event-hero {
+        position: relative;
+        height: 400px;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        margin-bottom: 2.5rem;
+    }
+    
+    .event-hero-image {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7)), 
                     url('{% if event.image %}{{ event.image.url }}{% else %}{% static "images/event-placeholder.jpg" %}{% endif %}');
         background-size: cover;
         background-position: center;
-        color: white;
-        border-radius: 0.5rem;
-        padding: 4rem 2rem;
-        position: relative;
-        margin-bottom: 2rem;
+        height: 100%;
+        width: 100%;
     }
     
-    .event-meta {
+    .event-hero-content {
+        position: relative;
+        z-index: 1;
+        color: var(--light-text);
+        padding: 3rem;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+    }
+    
+    /* Event Meta */
+    .event-meta-card {
         background-color: white;
-        border-radius: 0.5rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
         padding: 1.5rem;
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-        margin-top: -2rem;
-        position: relative;
-    }
-    
-    .event-status {
-        position: absolute;
-        top: 1rem;
-        right: 1rem;
-        padding: 0.5rem 1rem;
-        border-radius: 2rem;
-        font-weight: 500;
-        font-size: 0.875rem;
+        margin-bottom: 2rem;
+        border: none;
     }
     
     .event-meta-item {
         display: flex;
         align-items: flex-start;
-        margin-bottom: 1rem;
-        padding-bottom: 1rem;
-        border-bottom: 1px solid #e9ecef;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
     }
     
     .event-meta-item:last-child {
@@ -51,23 +75,37 @@
     }
     
     .event-meta-icon {
-        width: 40px;
-        height: 40px;
-        background-color: rgba(13, 110, 253, 0.1);
-        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        background-color: rgba(67, 97, 238, 0.1);
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
         margin-right: 1rem;
-        color: #0d6efd;
+        color: var(--primary-color);
         flex-shrink: 0;
     }
     
+    .event-meta-icon i {
+        font-size: 1.25rem;
+    }
+    
+    /* Registration Box */
     .registration-box {
+        position: sticky;
+        top: 2rem;
         background-color: white;
-        border-radius: 0.5rem;
-        padding: 1.5rem;
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        padding: 2rem;
+        border: none;
+    }
+    
+    .registration-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        display: inline-block;
     }
     
     .capacity-bar {
@@ -79,8 +117,10 @@
     
     .capacity-bar .progress-bar {
         border-radius: 4px;
+        background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
     }
     
+    /* Organizers */
     .organizer-avatar {
         width: 40px;
         height: 40px;
@@ -90,68 +130,221 @@
         border: 2px solid white;
     }
     
-    .registration-icon {
-        font-size: 2.5rem;
-        margin-bottom: 1rem;
+    /* Badge Styles */
+    .badge {
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-weight: 500;
+        font-size: 0.875rem;
     }
     
+    .badge-registration {
+        position: absolute;
+        top: 2rem;
+        right: 2rem;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-weight: 500;
+        font-size: 0.875rem;
+        z-index: 5;
+    }
+    
+    .badge-category {
+        background-color: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-weight: 500;
+        font-size: 0.875rem;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+        display: inline-block;
+    }
+    
+    /* Buttons */
+    .btn {
+        border-radius: 50px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 500;
+        transition: var(--transition);
+    }
+    
+    .btn-primary {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+    
+    .btn-primary:hover {
+        background-color: var(--primary-hover);
+        border-color: var(--primary-hover);
+    }
+    
+    .btn-outline-primary {
+        color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+    
+    .btn-outline-primary:hover {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+    
+    .btn-sm {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+    }
+    
+    .btn-icon {
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+    }
+    
+    /* Card styles */
+    .card {
+        border-radius: var(--border-radius);
+        border: none;
+        box-shadow: var(--box-shadow);
+        transition: var(--transition);
+    }
+    
+    .card-header {
+        background-color: transparent;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        padding: 1.5rem;
+    }
+    
+    .card-body {
+        padding: 1.5rem;
+    }
+    
+    /* Similar events */
     .similar-event-card {
-        transition: transform 0.3s ease;
+        transition: var(--transition);
+        border: none;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        height: 100%;
     }
     
     .similar-event-card:hover {
         transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Breadcrumbs */
+    .breadcrumb {
+        background-color: transparent;
+        padding: 0;
+        margin-bottom: 1rem;
+    }
+    
+    .breadcrumb-item a {
+        color: var(--medium-text);
+        text-decoration: none;
+    }
+    
+    .breadcrumb-item.active {
+        color: var(--dark-text);
+    }
+    
+    /* Form Controls */
+    .form-control {
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    
+    .form-control:focus {
+        box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.25);
+        border-color: var(--primary-color);
+    }
+    
+    /* Share buttons */
+    .share-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 0.75rem;
+    }
+    
+    /* Custom Animations */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .animate-in {
+        animation: fadeIn 0.5s ease forwards;
+    }
+    
+    /* Calendar buttons */
+    .calendar-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 0.75rem;
+    }
+    
+    /* Event description */
+    .event-description {
+        line-height: 1.8;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <!-- Event Status Badge -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url 'events:event_list' %}">Events</a></li>
-                {% if event.categories.first %}
-                <li class="breadcrumb-item">
-                    <a href="{% url 'events:event_list' %}?category={{ event.categories.first.slug }}">
-                        {{ event.categories.first.name }}
-                    </a>
-                </li>
-                {% endif %}
-                <li class="breadcrumb-item active" aria-current="page">{{ event.title }}</li>
-            </ol>
-        </nav>
-        
-        {% if event.is_upcoming %}
-        <span class="badge bg-success">Upcoming</span>
-        {% elif event.is_ongoing %}
-        <span class="badge bg-primary">Happening Now</span>
-        {% else %}
-        <span class="badge bg-secondary">Past Event</span>
-        {% endif %}
-    </div>
+<div class="container mt-5 animate-in">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'events:event_list' %}">Events</a></li>
+            {% if event.categories.first %}
+            <li class="breadcrumb-item">
+                <a href="{% url 'events:event_list' %}?category={{ event.categories.first.slug }}">
+                    {{ event.categories.first.name }}
+                </a>
+            </li>
+            {% endif %}
+            <li class="breadcrumb-item active" aria-current="page">{{ event.title }}</li>
+        </ol>
+    </nav>
     
-    <!-- Event Header -->
-    <div class="event-header">
-        <div class="container">
+    <!-- Event Hero -->
+    <div class="event-hero">
+        <div class="event-hero-image"></div>
+        
+        <!-- Status badge -->
+        {% if event.is_upcoming %}
+        <span class="badge bg-success badge-registration">Upcoming</span>
+        {% elif event.is_ongoing %}
+        <span class="badge bg-primary badge-registration">Happening Now</span>
+        {% else %}
+        <span class="badge bg-secondary badge-registration">Past Event</span>
+        {% endif %}
+        
+        <div class="event-hero-content">
             <h1 class="display-5 fw-bold mb-3">{{ event.title }}</h1>
-            <div class="d-flex flex-wrap">
+            
+            <div class="mb-4">
                 {% for category in event.categories.all %}
-                <span class="badge bg-primary me-2 mb-2">{{ category.name }}</span>
+                <span class="badge-category">{{ category.name }}</span>
                 {% endfor %}
             </div>
             
             {% if is_organizer or user.is_staff %}
             <div class="mt-3">
                 {% if event.status == 'draft' %}
-                <span class="badge bg-warning text-dark">Draft</span>
+                <span class="badge bg-warning text-dark me-2">Draft</span>
                 {% endif %}
-                <a href="{% url 'events:event_edit' event.id %}" class="btn btn-outline-light btn-sm me-2">
-                    <i class="fas fa-edit"></i> Edit Event
+                <a href="{% url 'events:event_edit' event.id %}" class="btn btn-light btn-sm me-2">
+                    <i class="fas fa-edit me-1"></i> Edit Event
                 </a>
-                <a href="{% url 'events:manage_attendees' event.id %}" class="btn btn-outline-light btn-sm">
-                    <i class="fas fa-users"></i> Manage Attendees
+                <a href="{% url 'events:manage_attendees' event.id %}" class="btn btn-light btn-sm">
+                    <i class="fas fa-users me-1"></i> Manage Attendees
                 </a>
             </div>
             {% endif %}
@@ -162,7 +355,7 @@
         <!-- Event Details Column -->
         <div class="col-lg-8">
             <!-- Event Meta Info -->
-            <div class="event-meta mb-4">
+            <div class="event-meta-card mb-4">
                 <div class="row">
                     <div class="col-md-6">
                         <div class="event-meta-item">
@@ -170,13 +363,13 @@
                                 <i class="fas fa-calendar-day"></i>
                             </div>
                             <div>
-                                <h6 class="mb-1">Date & Time</h6>
-                                <div>{{ event.start_date|date:"F j, Y" }} at {{ event.start_date|date:"g:i A" }}</div>
-                                <div class="text-muted small">
+                                <h6 class="mb-2 fw-bold">Date & Time</h6>
+                                <div class="fs-5 mb-1">{{ event.start_date|date:"F j, Y" }}</div>
+                                <div class="fs-6">{{ event.start_date|date:"g:i A" }} - 
                                     {% if event.end_date|date:"F j, Y" == event.start_date|date:"F j, Y" %}
-                                    Ends at {{ event.end_date|date:"g:i A" }}
+                                    {{ event.end_date|date:"g:i A" }}
                                     {% else %}
-                                    Ends on {{ event.end_date|date:"F j, Y" }} at {{ event.end_date|date:"g:i A" }}
+                                    {{ event.end_date|date:"F j, Y g:i A" }}
                                     {% endif %}
                                 </div>
                             </div>
@@ -189,16 +382,16 @@
                                 <i class="fas {% if event.is_virtual %}fa-video{% else %}fa-map-marker-alt{% endif %}"></i>
                             </div>
                             <div>
-                                <h6 class="mb-1">Location</h6>
+                                <h6 class="mb-2 fw-bold">Location</h6>
                                 {% if event.is_virtual %}
-                                <div>Virtual Event</div>
+                                <div class="fs-5 mb-1">Virtual Event</div>
                                 {% if event.virtual_link and is_registered %}
-                                <a href="{{ event.virtual_link }}" target="_blank" class="btn btn-sm btn-outline-primary mt-1">
-                                    <i class="fas fa-external-link-alt"></i> Join Event
+                                <a href="{{ event.virtual_link }}" target="_blank" class="btn btn-sm btn-primary mt-2">
+                                    <i class="fas fa-external-link-alt me-1"></i> Join Event
                                 </a>
                                 {% endif %}
                                 {% else %}
-                                <div>{{ event.location }}</div>
+                                <div class="fs-5">{{ event.location }}</div>
                                 {% endif %}
                             </div>
                         </div>
@@ -210,13 +403,17 @@
                                 <i class="fas fa-user-friends"></i>
                             </div>
                             <div>
-                                <h6 class="mb-1">Capacity</h6>
+                                <h6 class="mb-2 fw-bold">Capacity</h6>
                                 {% if event.capacity %}
-                                <div>{{ registration_count }} / {{ event.capacity }} registered</div>
-                                <div class="text-muted small">{{ spots_left }} spots left</div>
+                                <div class="fs-5 mb-1">{{ registration_count }} / {{ event.capacity }}</div>
+                                <div class="text-success">
+                                    <i class="fas fa-ticket-alt me-1"></i> {{ spots_left }} spots remaining
+                                </div>
                                 {% else %}
-                                <div>{{ registration_count }} registered</div>
-                                <div class="text-muted small">Unlimited capacity</div>
+                                <div class="fs-5 mb-1">{{ registration_count }} registered</div>
+                                <div class="text-muted">
+                                    <i class="fas fa-infinity me-1"></i> Unlimited capacity
+                                </div>
                                 {% endif %}
                             </div>
                         </div>
@@ -228,10 +425,10 @@
                                 <i class="fas fa-users"></i>
                             </div>
                             <div>
-                                <h6 class="mb-1">Organizers</h6>
+                                <h6 class="mb-2 fw-bold">Organizers</h6>
                                 <div class="d-flex flex-wrap align-items-center">
                                     {% for organizer in event.organizers.all %}
-                                    <div class="d-flex align-items-center me-3 mb-1" title="{{ organizer.username }}">
+                                    <div class="d-flex align-items-center me-3 mb-2" title="{{ organizer.username }}">
                                         {% if organizer.profile.image %}
                                         <img src="{{ organizer.profile.image.url }}" alt="{{ organizer.username }}" class="organizer-avatar">
                                         {% else %}
@@ -249,8 +446,8 @@
             
             <!-- Event Description -->
             <div class="card mb-4">
-                <div class="card-header bg-transparent">
-                    <h5 class="mb-0">About This Event</h5>
+                <div class="card-header">
+                    <h5 class="mb-0 fw-bold">About This Event</h5>
                 </div>
                 <div class="card-body">
                     <div class="event-description">
@@ -262,17 +459,17 @@
             <!-- Similar Events -->
             {% if similar_events %}
             <div class="similar-events mt-5">
-                <h4 class="mb-3">Similar Events</h4>
+                <h4 class="mb-4 fw-bold">You Might Also Like</h4>
                 <div class="row row-cols-1 row-cols-md-3 g-3">
                     {% for similar in similar_events %}
                     <div class="col">
                         <a href="{{ similar.get_absolute_url }}" class="text-decoration-none">
-                            <div class="card h-100 similar-event-card">
+                            <div class="similar-event-card">
                                 <div class="card-body">
-                                    <h6 class="card-title">{{ similar.title }}</h6>
-                                    <div class="text-muted small mb-2">
-                                        <i class="fas fa-calendar-alt me-1"></i> 
-                                        {{ similar.start_date|date:"M j" }}
+                                    <h6 class="card-title fw-bold mb-2">{{ similar.title }}</h6>
+                                    <div class="d-flex align-items-center text-muted">
+                                        <i class="fas fa-calendar-alt me-2"></i> 
+                                        <span>{{ similar.start_date|date:"M j, Y" }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -286,13 +483,13 @@
         
         <!-- Registration Column -->
         <div class="col-lg-4">
-            <div class="registration-box sticky-lg-top" style="top: 2rem; z-index: 1;">
+            <div class="registration-box">
                 {% if event.is_past %}
                     <div class="text-center mb-3">
                         <div class="registration-icon text-secondary">
                             <i class="fas fa-calendar-times"></i>
                         </div>
-                        <h5>Event Ended</h5>
+                        <h5 class="fw-bold mb-3">Event Ended</h5>
                         <p class="text-muted">This event already took place on {{ event.end_date|date:"F j, Y" }}.</p>
                     </div>
                 {% elif not event.registration_open %}
@@ -300,7 +497,7 @@
                         <div class="registration-icon text-warning">
                             <i class="fas fa-lock"></i>
                         </div>
-                        <h5>Registration Closed</h5>
+                        <h5 class="fw-bold mb-3">Registration Closed</h5>
                         <p class="text-muted">
                             {% if event.registration_deadline %}
                             Registration closed on {{ event.registration_deadline|date:"F j, Y" }}.
@@ -314,7 +511,7 @@
                         <div class="registration-icon text-danger">
                             <i class="fas fa-ticket-alt"></i>
                         </div>
-                        <h5>Fully Booked</h5>
+                        <h5 class="fw-bold mb-3">Fully Booked</h5>
                         <p class="text-muted">This event has reached maximum capacity.</p>
                     </div>
                 {% elif not user.is_authenticated %}
@@ -322,9 +519,9 @@
                         <div class="registration-icon text-primary">
                             <i class="fas fa-sign-in-alt"></i>
                         </div>
-                        <h5>Want to Register?</h5>
+                        <h5 class="fw-bold mb-3">Want to Register?</h5>
                         <p>Please log in or create an account to register for this event.</p>
-                        <div class="d-grid gap-2">
+                        <div class="d-grid gap-2 mt-4">
                             <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-primary">Login</a>
                             <a href="{% url 'register' %}?next={{ request.path }}" class="btn btn-outline-primary">Sign Up</a>
                         </div>
@@ -334,20 +531,22 @@
                         <div class="registration-icon text-success">
                             <i class="fas fa-check-circle"></i>
                         </div>
-                        <h5>You're Registered!</h5>
-                        <p class="mb-3">Your registration status: <strong>{{ registration_status|title }}</strong></p>
+                        <h5 class="fw-bold mb-3">You're Registered!</h5>
+                        <div class="badge bg-success mb-3 px-3 py-2">
+                            Status: {{ registration_status|title }}
+                        </div>
                         
                         {% if event.is_virtual and event.virtual_link %}
-                        <div class="alert alert-info">
+                        <div class="alert alert-info mt-4">
                             <i class="fas fa-info-circle me-2"></i> You'll be able to join this event online when it starts.
                         </div>
                         {% endif %}
                         
                         {% if event.is_upcoming or event.is_ongoing %}
-                        <form action="{% url 'events:event_unregister' event.id %}" method="post" class="mt-3">
+                        <form action="{% url 'events:event_unregister' event.id %}" method="post" class="mt-4">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-outline-danger w-100" onclick="return confirm('Are you sure you want to cancel your registration?')">
-                                <i class="fas fa-times-circle"></i> Cancel Registration
+                                <i class="fas fa-times-circle me-2"></i> Cancel Registration
                             </button>
                         </form>
                         {% endif %}
@@ -357,16 +556,16 @@
                         <div class="registration-icon text-primary">
                             <i class="fas fa-ticket-alt"></i>
                         </div>
-                        <h5>Register for This Event</h5>
-                        <p>Secure your spot for this event now!</p>
+                        <h5 class="fw-bold mb-3">Secure Your Spot</h5>
+                        <p>Don't miss out on this exciting event!</p>
                         
                         {% if event.capacity %}
-                        <div class="capacity-bar">
-                            <div class="progress-bar bg-primary" role="progressbar" style="width: {{ event.registration_percentage }}%" 
+                        <div class="capacity-bar mt-4">
+                            <div class="progress-bar" role="progressbar" style="width: {{ event.registration_percentage }}%" 
                                  aria-valuenow="{{ event.registration_percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
                         </div>
-                        <p class="small text-muted mb-3">
-                            {{ spots_left }} of {{ event.capacity }} spots remaining
+                        <p class="small text-muted mb-4">
+                            <i class="fas fa-users me-1"></i> {{ spots_left }} of {{ event.capacity }} spots remaining
                         </p>
                         {% endif %}
                         
@@ -384,7 +583,7 @@
                                 </div>
                             {% endif %}
                             <button type="submit" class="btn btn-primary w-100">
-                                <i class="fas fa-check-circle"></i> Register
+                                <i class="fas fa-check-circle me-2"></i> Register Now
                             </button>
                         </form>
                     </div>
@@ -394,15 +593,15 @@
                 {% if event.is_upcoming %}
                 <hr>
                 <div class="text-center">
-                    <h6>Add to Calendar</h6>
-                    <div class="d-flex justify-content-center gap-2 mt-2">
-                        <a href="https://www.google.com/calendar/render?action=TEMPLATE&text={{ event.title }}&dates={{ event.start_date|date:"Ymd\\THis\\Z" }}/{{ event.end_date|date:"Ymd\\THis\\Z" }}&details={{ event.description }}&location={{ event.location }}&sf=true&output=xml" class="btn btn-sm btn-outline-secondary" title="Google Calendar">
+                    <h6 class="fw-bold mb-3">Add to Calendar</h6>
+                    <div class="calendar-buttons">
+                        <a href="https://www.google.com/calendar/render?action=TEMPLATE&text={{ event.title }}&dates={{ event.start_date|date:"Ymd\\THis\\Z" }}/{{ event.end_date|date:"Ymd\\THis\\Z" }}&details={{ event.description }}&location={{ event.location }}&sf=true&output=xml" class="btn btn-icon btn-outline-secondary" title="Google Calendar">
                             <i class="fab fa-google"></i>
                         </a>
-                        <a href="{% url 'events:apple_calendar_event' event.id %}" class="btn btn-sm btn-outline-secondary" title="Apple Calendar">
+                        <a href="{% url 'events:apple_calendar_event' event.id %}" class="btn btn-icon btn-outline-secondary" title="Apple Calendar">
                             <i class="fas fa-calendar-alt"></i>
                         </a>
-                        <a href="{% url 'events:outlook_calendar_event' event.id %}" class="btn btn-sm btn-outline-secondary" title="Outlook">
+                        <a href="{% url 'events:outlook_calendar_event' event.id %}" class="btn btn-icon btn-outline-secondary" title="Outlook">
                             <i class="fab fa-microsoft"></i>
                         </a>
                     </div>
@@ -412,21 +611,21 @@
                 <!-- Share options -->
                 <hr>
                 <div class="text-center">
-                    <h6>Share</h6>
-                    <div class="d-flex justify-content-center gap-2 mt-2">
+                    <h6 class="fw-bold mb-3">Share This Event</h6>
+                    <div class="share-buttons">
                         <a href="https://twitter.com/intent/tweet?url={{ request.build_absolute_uri }}&text={{ event.title|urlencode }}" 
-                           target="_blank" class="btn btn-sm btn-outline-primary" title="Share on Twitter">
+                           target="_blank" class="btn btn-icon btn-outline-primary" title="Share on Twitter">
                             <i class="fab fa-twitter"></i>
                         </a>
                         <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" 
-                           target="_blank" class="btn btn-sm btn-outline-primary" title="Share on Facebook">
+                           target="_blank" class="btn btn-icon btn-outline-primary" title="Share on Facebook">
                             <i class="fab fa-facebook-f"></i>
                         </a>
                         <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ request.build_absolute_uri }}" 
-                           target="_blank" class="btn btn-sm btn-outline-primary" title="Share on LinkedIn">
+                           target="_blank" class="btn btn-icon btn-outline-primary" title="Share on LinkedIn">
                             <i class="fab fa-linkedin-in"></i>
                         </a>
-                        <button class="btn btn-sm btn-outline-primary copy-link" title="Copy Link" 
+                        <button class="btn btn-icon btn-outline-primary copy-link" title="Copy Link" 
                                 data-link="{{ request.build_absolute_uri }}">
                             <i class="fas fa-link"></i>
                         </button>
@@ -441,6 +640,7 @@
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Copy link functionality
         const copyButtons = document.querySelectorAll('.copy-link');
         copyButtons.forEach(button => {
             button.addEventListener('click', function() {
@@ -458,6 +658,16 @@
                     }, 2000);
                 });
             });
+        });
+        
+        // Add animation classes
+        const elements = document.querySelectorAll('.event-meta-card, .card, .registration-box');
+        elements.forEach((element, index) => {
+            element.style.opacity = '0';
+            element.style.animationDelay = (index * 0.1) + 's';
+            setTimeout(() => {
+                element.classList.add('animate-in');
+            }, 100);
         });
     });
 </script>
