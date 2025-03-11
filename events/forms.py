@@ -58,10 +58,10 @@ from .models import Registration
 class RegistrationForm(forms.ModelForm):
     """Form for basic registration"""
     notes = forms.CharField(
-        widget=forms.Textarea(attrs={'rows': 3, 'placeholder': 'Any special requirements or notes?'}),
-        required=False,
-        label="Notes"
-    )
+    widget=forms.Textarea(attrs={'rows': 3, 'placeholder': 'Any special requirements or notes?', 'style': 'width: 100%;'}),
+    required=False,
+    label="Notes"
+)
     
     class Meta:
         model = Registration
