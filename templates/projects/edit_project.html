@@ -1,5 +1,7 @@
-{% extends 'base.html' %} {% block title %}Edit {{ project.title }} - NxGen {%endblock %} 
-{% load static %} {% block content %}
+{% extends 'base.html' %} 
+{% block title %}Edit {{ project.title }} - NxGen {% endblock %} 
+{% load static %} 
+{% block content %}
 <link rel="stylesheet" href="{% static 'css/projects/add_project.css' %}" />
 <div class="add_project_header">
   <h4>Edit Project</h4>
@@ -9,13 +11,14 @@
 </div>
 
 <p class="info-text">
-  Enter your project’s GitHub link, and all project details will be automatically retrieved.  
+  Enter your project's GitHub link, and all project details will be automatically retrieved.  
   You can review and edit the details before saving.
 </p>
 
 <p class="text-muted">
   <small class="required">*</small> Required fields are marked.
 </p>
+
 
 <div class="project-container">
   <!-- Left Side: Form -->
@@ -156,6 +159,10 @@
               hidden
             />
           </div>
+          <!-- Store the project image URL in a hidden input instead of as a visible image -->
+           {% if project.image %}
+          <input type="hidden" id="existing-image-url" value="{{ project.image.url }}" />
+          {% endif %}
         </div>
 
         <!-- Seeking Collaborators Checkbox -->
@@ -214,5 +221,5 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<script src="{% static 'js/projects/add_project.js' %}"></script>
+<script src="{% static 'js/projects/edit_project.js' %}"></script>
 {% endblock %}

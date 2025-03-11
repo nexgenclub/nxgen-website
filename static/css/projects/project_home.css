@@ -3,6 +3,12 @@
     justify-content: space-between;
     align-items: center;
     padding: 10px 0;
+    flex-wrap: nowrap;
+}
+
+.project_home_header h2, .project_home_header .btn-add-project {
+    display: inline-flex;
+    align-items: center;
 }
 
 .project_home_header h2 {
@@ -12,7 +18,7 @@
 }
 
 .btn-add-project {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     background-color: #007bff;
     color: white;
@@ -32,15 +38,6 @@
 .btn-add-project:hover {
     background-color: #0056b3;
     transform: scale(1.05);
-}
-
-/* Responsive Adjustments */
-@media (max-width: 768px) {
-    .btn-add-project {
-        margin-top: 10px;
-        width: 100%;
-        justify-content: center;
-    }
 }
 
 .card {
@@ -102,4 +99,86 @@
 
 .filter-sidebar {
     max-height: fit-content;
+}
+
+/* Responsive Filter Sidebar */
+.filter-sidebar {
+    width: 250px;
+    transition: all 0.3s ease;
+}
+
+/* Filter toggle button */
+.filter-toggle {
+    display: none;
+}
+
+/* Media query for smaller screens */
+@media (max-width: 768px) {
+
+    /* Keep the main layout in row direction */
+    .d-flex[style="margin-top: 20px;"] {
+        position: relative;
+        /* Make parent relative for absolute positioning */
+    }
+
+    /* Position the sidebar as an overlay */
+    .filter-sidebar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 80%;
+        /* Take 80% of the screen width */
+        max-width: 300px;
+        height: auto;
+        background-color: white;
+        z-index: 1000;
+        /* Place above other content */
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+        border-radius: 0 0 5px 0;
+        transform: translateX(-100%);
+        /* Hide off-screen by default */
+        transition: transform 0.3s ease;
+    }
+
+    /* Show sidebar when active */
+    .filter-sidebar.active {
+        transform: translateX(0);
+    }
+
+    /* Position the toggle button */
+    .filter-toggle {
+        display: block;
+        position: fixed;
+        top: 80px;
+        /* Adjust based on your header height */
+        left: 0;
+        z-index: 1001;
+        padding: 8px 12px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 0 4px 4px 0;
+        box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Projects container takes full width */
+    .projects-container {
+        width: 100%;
+    }
+
+    /* Add overlay background when filter is shown */
+    .filter-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+    }
+
+    .filter-overlay.active {
+        display: block;
+    }
 }

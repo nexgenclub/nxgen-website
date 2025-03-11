@@ -9,18 +9,29 @@
 
 <link rel="stylesheet" href="{% static 'css/projects/project_home.css' %}">
 <!-- Project Header -->
-<div class="project_home_header d-flex justify-content-between align-items-center p-3 border-bottom">
+<div class="project_home_header border-bottom">
   <h2 class="mb-4">Projects</h2>
   <a href="{% url 'projects:add_project' %}" class="btn-add-project">
     <i class="fas fa-plus-circle"></i> Add Project
   </a>
 </div>
 
+<!-- Filter toggle button for mobile -->
+<button class="filter-toggle" type="button">
+  <i class="fas fa-filter"></i>
+</button>
+
+<!-- Dark overlay background -->
+<div class="filter-overlay"></div>
+
 <!-- Layout with Sidebar & Content -->
 <div class="d-flex" style="margin-top: 20px;">
   <!-- Sidebar (Filters) -->
   <div class="filter-sidebar p-3">
-    <h5 class="mb-3"><i class="fas fa-filter"></i> Filters</h5>
+    <h5 class="mb-3 d-flex justify-content-between align-items-center">
+      <span><i class="fas fa-filter"></i> Filters</span>
+      <button type="button" class="btn-close filter-close d-md-none"></button>
+    </h5>
     <form method="GET" action="{% url 'projects:project_home' %}">
       <div class="mb-3">
         <label for="search" class="form-label">Search</label>
@@ -49,13 +60,13 @@
           <div class="col-lg-4 col-md-6 mb-4">
             <div class="card shadow-sm border rounded">
               {% if project.image %}
-                <img src="{{ project.image.url }}" class="card-img-top" alt="{{ project.title }}">
+                <img src="{{ project.image.url }}" class="card-img-top" alt="{{ project.title }}" loading="lazy">
               {% else %}
                 {% with project.github_link|github_username as github_user %}
                   {% if github_user %}
-                    <img src="https://github.com/{{ github_user }}.png" class="card-img-top" alt="GitHub Profile Image">
+                    <img src="https://github.com/{{ github_user }}.png" class="card-img-top" alt="GitHub Profile Image" loading="lazy">
                   {% else %}
-                    <img src="https://via.placeholder.com/400x250" class="card-img-top" alt="Default Image">
+                    <img src="https://via.placeholder.com/400x250" class="card-img-top" alt="Default Image" loading="lazy">
                   {% endif %}
                 {% endwith %}
               {% endif %}
@@ -96,4 +107,44 @@
   </div>
 </div>
 
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Get DOM elements
+    const toggleButton = document.querySelector('.filter-toggle');
+    const filterSidebar = document.querySelector('.filter-sidebar');
+    const filterOverlay = document.querySelector('.filter-overlay');
+    const closeButton = document.querySelector('.filter-close');
+    
+    // Show/hide filter sidebar
+    function toggleFilter() {
+      filterSidebar.classList.toggle('active');
+      filterOverlay.classList.toggle('active');
+    }
+    
+    // Toggle filter when button is clicked
+    toggleButton.addEventListener('click', toggleFilter);
+    
+    // Close filter when overlay is clicked
+    filterOverlay.addEventListener('click', toggleFilter);
+    
+    // Close filter when close button is clicked
+    if (closeButton) {
+      closeButton.addEventListener('click', toggleFilter);
+    }
+    
+    // Hide filter toggle button on larger screens
+    function handleResize() {
+      if (window.innerWidth > 768) {
+        filterSidebar.classList.remove('active');
+        filterOverlay.classList.remove('active');
+      }
+    }
+    
+    // Set up resize handler
+    window.addEventListener('resize', handleResize);
+    
+    // Initialize
+    handleResize();
+  });
+</script>
 {% endblock %}
